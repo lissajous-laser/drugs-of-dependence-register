@@ -13,7 +13,7 @@ public class PharmacistTest {
 
 
     @Test
-    void correctFieldsGiveNoError() {
+    void correctFieldsGivesNoError() {
         pharmacist = new Pharmacist(
             "Ned",
             "Kelly",
@@ -58,7 +58,7 @@ public class PharmacistTest {
     }
 
     @Test
-    void firstNameLongerThan16Chars_GivesOneError() {
+    void firstNameLongerThanMaxChars_GivesOneError() {
         pharmacist = new Pharmacist(
             "Netherlanderinger",
             "Kelly",
@@ -103,7 +103,7 @@ public class PharmacistTest {
     }
 
     @Test
-    void secondNameLongerThan32Chars_GivesOneError() {
+    void secondNameLongerThanMaxChars_GivesOneError() {
         pharmacist = new Pharmacist(
             "Ned",
             "Kelllllllllllllllllllllllllllllly",
@@ -137,7 +137,7 @@ public class PharmacistTest {
         pharmacist = new Pharmacist(
             "Ned",
             "Kelly",
-            "PHARM00123"
+            "PHARM00000123"
         );
         int numberOfErrors =
                 (int) Arrays

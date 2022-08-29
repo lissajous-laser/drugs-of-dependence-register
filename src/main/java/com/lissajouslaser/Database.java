@@ -10,12 +10,13 @@ import java.sql.Statement;
  * Represents the database.
  */
 public class Database {
-    private final int thirdColumn = 3;
+    static final int THIRD_COLUMN = 3;
+    static final int FOURTH_COLUMN = 4;
     private Connection con;
     private PreparedStatement prescriberEntry;
     private PreparedStatement pharmacistEntry;
-    private PreparedStatement supplierEntry;
     private PreparedStatement drugEntry;
+    private PreparedStatement agentEntry;
     private PreparedStatement transferEntry;
 
     /**
@@ -23,7 +24,14 @@ public class Database {
      * prepared SQL queries.
      */
     public Database() {
-        System.out.println(connect());
+        this("records.db");
+    }
+
+    /**
+     * Constructor with specified database file.
+     */
+    public Database(String fileName) {
+        System.out.println(connect("jdbc:sqlite:file:" + fileName));
         System.out.println(createTables());
         System.out.println(createPreparedStatements());
     }
@@ -31,9 +39,9 @@ public class Database {
     /**
      * Sets up connection with database.
      */
-    public boolean connect() {
+    public boolean connect(String jdbcDriverAndDbPath) {
         try {
-            con = DriverManager.getConnection("jdbc:sqlite:test.db");
+            con = DriverManager.getConnection(jdbcDriverAndDbPath);
             return true;
         } catch (SQLException e) {
             return false;
@@ -44,7 +52,7 @@ public class Database {
      * Check if one if the expected tables in the database exists. If
      * it does not exist, it is assumed the database is new and
      * generates all the tables required. Returns true if no
-     * SQLException thrown, otherwise throws false.
+     * SQLException was encountered, otherwise throws false.
      */
     private boolean createTables() {
 
@@ -82,10 +90,10 @@ public class Database {
             createTable = ""
                     + "CREATE TABLE IF NOT EXISTS agents ("
                     + "    id integer CONSTRAINT agent_key PRIMARY KEY,"
+                    + "    is_supplier boolean"
                     + "    name varchar(64) NOT NULL,"
                     + "    last_name varchar(32),"
                     + "    address varchar(64) NOT NULL,"
-                    + "    is_supplier boolean"
                     + ");";
             stmt.execute(createTable);
 
@@ -120,17 +128,25 @@ public class Database {
             prescriberEntry = con.prepareStatement(""
                     + "INSERT INTO prescribers"
                     + "    (first_name, last_name, prescriber_num)"
-                    + "    VALUES (?, ?, ?);");
+                    + "    VALUES (?, ?, ?);"
+            );
 
             pharmacistEntry = con.prepareStatement(""
                     + "INSERT INTO pharmacists"
                     + "    (first_name, last_name, registration)"
-                    + "    VALUES (?, ?, ?);");
+                    + "    VALUES (?, ?, ?);"
+            );
 
             drugEntry = con.prepareStatement(""
                     + "INSERT INTO drugs"
                     + "    (name, strength, form)"
                     + "    VALUES (?, ?, ?);");
+            
+            agentEntry = con.prepareStatement(""
+                    + "INSERT INTO agents"
+                    + "    (is_supplier, name, last_name, address)"
+                    + "    VALUES (?, ?, ?, ?);"
+            );
 
             transferEntry = con.prepareStatement(""
                     + "INSERT INTO transfers ("
@@ -145,8 +161,8 @@ public class Database {
                     + "        reference,"
                     + "        notes"
                     + ")"
-                    + "    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
-
+                    + "    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+            );
             return true;
 
         } catch (SQLException e) {
@@ -157,14 +173,15 @@ public class Database {
     }
 
     /**
-     * Adds prescriber to the database.
+     * Adds prescriber to the database. Returns true if no SQLException
+     * was encountered.
      */
     public boolean addPrescriber(Prescriber prescriber) {
 
         try {
-            prescriberEntry.setString(1, prescriber.getfirstName());
-            prescriberEntry.setString(2, prescriber.getlastName());
-            prescriberEntry.setString(thirdColumn, prescriber.getprescriberNum());
+            prescriberEntry.setString(1, prescriber.getFirstName());
+            prescriberEntry.setString(2, prescriber.getLastName());
+            prescriberEntry.setString(THIRD_COLUMN, prescriber.getprescriberNum());
             prescriberEntry.execute();
 
             return true;
@@ -174,13 +191,14 @@ public class Database {
     }
 
     /**
-     * Adds pharamcist to the database.
+     * Adds pharamcist to the database. Returns true if no SQLException
+     * was encountered.
      */
     public boolean addPharmacist(Pharmacist pharmacist) {
         try {
-            pharmacistEntry.setString(1, pharmacist.getFirst_name());
-            pharmacistEntry.setString(2, pharmacist.getLast_name());
-            pharmacistEntry.setString(thirdColumn, pharmacist.getRegistration());
+            pharmacistEntry.setString(1, pharmacist.getFirstName());
+            pharmacistEntry.setString(2, pharmacist.getLastName());
+            pharmacistEntry.setString(THIRD_COLUMN, pharmacist.getRegistration());
             pharmacistEntry.execute();
 
             return true;
@@ -190,14 +208,53 @@ public class Database {
     }
 
     /**
-     * Adds drug to the database.
+     * Adds drug to the database. Returns true if no SQLException
+     * was encountered.
      */
     public boolean addDrug(Drug drug) {
         try {
-            drugEntry.setString(1, drug.getName());
-            drugEntry.setString(2, drug.getStrength());
-            drugEntry.setString(thirdColumn, drug.getDose_form());
+            drugEntry.setString(2, drug.getName());
+            drugEntry.setString(3, drug.getStrength());
+            drugEntry.setString(THIRD_COLUMN, drug.getDose_form());
             drugEntry.execute();
+
+            return true;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    /*
+     * Adds a patient to the database. Patients and suppliers are added
+     * to the same table in database because their keys are used in the
+     * same column in the transfers table. Returns true if no SQLException
+     * was encountered.
+     */
+    public boolean addPatient(Patient patient) {
+        try {
+            agentEntry.setString(1, "false");
+            agentEntry.setString(2, patient.getFirstName());
+            agentEntry.setString(THIRD_COLUMN, patient.getLastName());
+            agentEntry.setString(FOURTH_COLUMN, patient.getAddress_name());
+
+            return true;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    /*
+     * Adds a supplier to the database. Patients and suppliers are added
+     * to the same table in database because their keys are used in the
+     * same column in the transfers table. Returns true if no SQLException
+     * was encountered.
+     */
+    public boolean addSupplier(Supplier supplier) {
+        try {
+            agentEntry.setString(1, "true");
+            agentEntry.setString(2, supplier.getName());
+            agentEntry.setString(THIRD_COLUMN, "");
+            agentEntry.setString(FOURTH_COLUMN, supplier.getAddress());
 
             return true;
         } catch (SQLException e) {
@@ -218,15 +275,6 @@ public class Database {
             return false;
         }
 
-    }
-
-    /**
-     * Test.
-     */
-    public static void main(String[] args) {
-        Database db = new Database();
-        db.connect();
-        db.createTables();
     }
 
     // public static void main(String[] args) {

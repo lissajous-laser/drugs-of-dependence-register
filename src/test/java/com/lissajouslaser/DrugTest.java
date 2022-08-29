@@ -6,156 +6,156 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for the Prescriber class.
+ * Tests for the Drug class.
  */
-class PrescriberTest {
-    private Prescriber prescriber;
+public class DrugTest {
+    Drug drug;
 
     @Test
     void correctFieldsGiveNoError() {
-        prescriber = new Prescriber(
-            "Banjo",
-            "Patterson",
-            "1234567"
+        drug = new Drug(
+            "Jurnista",
+            "16mg",
+            "SR tablet"
         );
         int numberOfErrors =
                 (int) Arrays
-                .stream(prescriber.validate())
+                .stream(drug.validate())
                 .filter(x -> x != null && !x.isEmpty())
                 .count();
         assertEquals(0, numberOfErrors);
     }
 
     @Test
-    void firstNameEmptyGivesOneError() {
-        prescriber = new Prescriber(
+    void nameEmpty_givesOneError() {
+        drug = new Drug(
             "",
-            "Patterson",
-            "1234567"
+            "16mg",
+            "SR tablet"
         );
         int numberOfErrors =
                 (int) Arrays
-                .stream(prescriber.validate())
+                .stream(drug.validate())
                 .filter(x -> x != null && !x.isEmpty())
                 .count();
-        assertEquals(1, numberOfErrors);
+        assertEquals(1, numberOfErrors);        
     }
 
     @Test
-    void firstNameWithInvalidChars_givesOneError() {
-        prescriber = new Prescriber(
-            "B@njo",
-            "Patterson",
-            "1234567"
+    void nameWithInvalidChars_givesOneError() {
+        drug = new Drug(
+            "Jurnist@",
+            "16mg",
+            "SR tablet"
         );
         int numberOfErrors =
                 (int) Arrays
-                .stream(prescriber.validate())
+                .stream(drug.validate())
                 .filter(x -> x != null && !x.isEmpty())
                 .count();
-        assertEquals(1, numberOfErrors);
+        assertEquals(1, numberOfErrors);        
     }
 
     @Test
-    void firstNameLongerThanMaxChars_givesOneError() {
-        prescriber = new Prescriber(
-            "Banjo-Kazooie-the-Game",
-            "Patterson",
-            "1234567"
+    void nameLongerThan16Chars_givesOneError() {
+        drug = new Drug(
+            "Jurnista or Hydromorphone Hydrochloride",
+            "16mg",
+            "SR tablet"
         );
         int numberOfErrors =
                 (int) Arrays
-                .stream(prescriber.validate())
+                .stream(drug.validate())
                 .filter(x -> x != null && !x.isEmpty())
                 .count();
-        assertEquals(1, numberOfErrors);
+        assertEquals(1, numberOfErrors);        
     }
 
     @Test
-    void secondNameEmpty_givesOneError() {
-        prescriber = new Prescriber(
-            "Banjo",
+    void strengthEmpty_givesOneError() {
+        drug = new Drug(
+            "Jurnista",
             "",
-            "1234567"
+            "SR tablet"
         );
         int numberOfErrors =
                 (int) Arrays
-                .stream(prescriber.validate())
+                .stream(drug.validate())
                 .filter(x -> x != null && !x.isEmpty())
                 .count();
         assertEquals(1, numberOfErrors);
     }
 
     @Test
-    void secondNameWithInvalidChars_givesOneError() {
-        prescriber = new Prescriber(
-            "Banjo",
-            "Patter$on",
-            "1234567"
+    void strengthWithInvalidChars_givesOneError() {
+        drug = new Drug(
+            "Jurnista",
+            "1600μg",
+            "SR tablet"
         );
         int numberOfErrors =
                 (int) Arrays
-                .stream(prescriber.validate())
+                .stream(drug.validate())
                 .filter(x -> x != null && !x.isEmpty())
                 .count();
         assertEquals(1, numberOfErrors);
     }
 
     @Test
-    void secondNameLongerThanMaxChars_givesOneError() {
-        prescriber = new Prescriber(
-            "Banjo",
-            "Pattersonofschattersonofgaffersonoffatter",
-            "1234567"
+    void strengthLongerThan16Chars_givesOneError() {
+        drug = new Drug(
+            "Jurnista",
+            "1600microgrammages",
+            "SR tablet"
         );
         int numberOfErrors =
                 (int) Arrays
-                .stream(prescriber.validate())
+                .stream(drug.validate())
                 .filter(x -> x != null && !x.isEmpty())
                 .count();
         assertEquals(1, numberOfErrors);
     }
 
     @Test
-    void prescriberNumEmpty_givesOneError() {
-        prescriber = new Prescriber(
-            "Banjo",
-            "Patterson",
+    void emptyDoseForm_givesOneError() {
+        drug = new Drug(
+            "Jurnista",
+            "16mg",
             ""
         );
         int numberOfErrors =
                 (int) Arrays
-                .stream(prescriber.validate())
+                .stream(drug.validate())
                 .filter(x -> x != null && !x.isEmpty())
                 .count();
         assertEquals(1, numberOfErrors);
     }
 
     @Test
-    void prescriberWithInvalidChars_givesOneError() {
-        prescriber = new Prescriber(
-            "Banjo",
-            "Patterson",
-            "8eight8"
+    void doseFormWithInvalidChars_givesOneError() {
+        drug = new Drug(
+            "Jurnista",
+            "16mg",
+            "SR_tablet"
         );
         int numberOfErrors =
                 (int) Arrays
-                .stream(prescriber.validate())
+                .stream(drug.validate())
                 .filter(x -> x != null && !x.isEmpty())
                 .count();
         assertEquals(1, numberOfErrors);
     }
 
     @Test
-    void prescriberNumLongerThan7Chars_givesOneError() {
-        prescriber = new Prescriber(
-            "Banjo",
-            "Patterson",
-            "45678901"
+    void doseFormLongerThan16Chars_givesOneError() {
+        drug = new Drug(
+            "Jurnista",
+            "16mg",
+            "sustained release tablet"
         );
         int numberOfErrors =
                 (int) Arrays
-                .stream(prescriber.validate())
+                .stream(drug.validate())
                 .filter(x -> x != null && !x.isEmpty())
                 .count();
         assertEquals(1, numberOfErrors);
