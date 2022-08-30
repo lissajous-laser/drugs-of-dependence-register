@@ -15,7 +15,7 @@ public class Prescriber extends Person {
             String lastName,
             String prescriberNum) {
         super(firstName, lastName);
-        this.prescriberNum = prescriberNum.toLowerCase();
+        this.prescriberNum = prescriberNum.toUpperCase();
     }
 
     public String getprescriberNum() {
@@ -50,11 +50,11 @@ public class Prescriber extends Person {
      */
     private String validatePrescriberNumber() {
         if (prescriberNum.length() != prescriberNumLength) {
-            return "Prescriber number must be " + prescriberNumLength
+            return "Must be " + prescriberNumLength
                     + " digits";
         }
         if (!prescriberNum.matches("[0-9]+")) {
-            return "Presiber number must be in digits";
+            return "Must be in digits";
         }
         return null;
     }

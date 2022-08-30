@@ -71,7 +71,7 @@ public class SupplierTest {
     void addressWithInvalidChars_givesOneError() {
         supplier = new Supplier(
             "Australian Pharmacuetical Industries Limited",
-            "250 Camberwell Straße, Camberwell VIC 3124"
+            "250 Camberwell Stra$$e, Camberwell VIC 3124"
         );
         int numberOfErrors =
                 (int) Arrays
@@ -93,5 +93,5 @@ public class SupplierTest {
                 .filter(x -> x != null && !x.isEmpty())
                 .count();
         assertEquals(1, numberOfErrors);        
-    }  
+    }
 }

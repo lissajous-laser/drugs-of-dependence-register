@@ -12,13 +12,25 @@ public class Patient extends Person {
      */
     public Patient(String firstName, String lastName, String address) {
         super(firstName, lastName);
-        this.address = address.toLowerCase();
+        this.address = address.toUpperCase();
     }
 
     public String getAddress_name() {
         return address;
     }
 
+    /**
+     * Validates the fields for adding a patient to
+     * the database.
+     *
+     * @return An array of error messages, with each index
+     *         representing a error message for a given field.
+     *         0 - firstName;
+     *         1 - lastName;
+     *         2 - address;
+     *         If there is no error for an associated field, the
+     *         String at the associated index is null;
+     */
     public String[] validate() {
         final int numOfFields = 3;
 
@@ -38,7 +50,7 @@ public class Patient extends Person {
             return "Address must be " + MAX_ADDRESS_LENGTH
                     + " characters or less";
         }
-        if (!address.matches("[a-z0-9\\-/ ,]")) {
+        if (!address.matches("[A-Z0-9\\-/ ,]+")) {
             return "Address can only have characters a-z, 0-9, spaces, commas,"
                     + " /, -,";
         }

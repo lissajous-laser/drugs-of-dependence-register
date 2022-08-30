@@ -13,9 +13,9 @@ public class Drug {
      * Constructor.
      */
     public Drug(String name, String strength, String doseForm) {
-        this.name = name.toLowerCase();
-        this.strength = strength.toLowerCase();
-        this.doseForm = doseForm.toLowerCase();
+        this.name = name.toUpperCase();
+        this.strength = strength.toUpperCase();
+        this.doseForm = doseForm.toUpperCase();
     }
 
     public String getName() {
@@ -51,7 +51,7 @@ public class Drug {
         if (name.length() > nameMaxLength) {
             return "Name must be 32 characters or less";
         }
-        if (!name.matches("[a-z\\- ]+")) {
+        if (!name.matches("[A-Z\\- ]+")) {
             return "Name can only contain letters, hyphens and spaces";
         }
         return null;
@@ -64,7 +64,7 @@ public class Drug {
         if (strength.length() > 16) {
             return "Strength must be 16 charactes or less";
         }
-        if (!strength.matches("^[0-9][0-9a-z/]+[a-z]$")) {
+        if (!strength.matches("^[0-9][0-9A-Z/]+[A-Z]$")) {
             return "Strength must be in digits and have units";
         }
         return null;
@@ -77,7 +77,7 @@ public class Drug {
         if (doseForm.length() > 16) {
             return "Dose form must be 16 characters or less";
         }
-        if (!doseForm.matches("[a-z\\- ]+")) {
+        if (!doseForm.matches("[A-Z\\- ]+")) {
             return "Dose form must in alphabetical letters";
         }
         return null;

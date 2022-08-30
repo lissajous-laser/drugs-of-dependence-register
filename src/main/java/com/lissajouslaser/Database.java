@@ -3,6 +3,7 @@ package com.lissajouslaser;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -13,11 +14,17 @@ public class Database {
     static final int THIRD_COLUMN = 3;
     static final int FOURTH_COLUMN = 4;
     private Connection con;
-    private PreparedStatement prescriberEntry;
-    private PreparedStatement pharmacistEntry;
-    private PreparedStatement drugEntry;
-    private PreparedStatement agentEntry;
-    private PreparedStatement transferEntry;
+    private PreparedStatement prescriberInsert;
+    private PreparedStatement pharmacistInsert;
+    private PreparedStatement drugInsert;
+    private PreparedStatement agentInsert;
+    private PreparedStatement transferInsert;
+    private PreparedStatement prescriberSearch;
+    private PreparedStatement pharmacistSearch;
+    private PreparedStatement drugSearch;
+    private PreparedStatement patientSearch;
+    private PreparedStatement supplierSearch;
+
 
     /**
      * Default constructor. Connects to database and prepares
@@ -36,12 +43,16 @@ public class Database {
         System.out.println(createPreparedStatements());
     }
 
+    public Connection getConnection() {
+        return con;
+    }
+
     /**
      * Sets up connection with database.
      */
-    public boolean connect(String jdbcDriverAndDbPath) {
+    public boolean connect(String connectionString) {
         try {
-            con = DriverManager.getConnection(jdbcDriverAndDbPath);
+            con = DriverManager.getConnection(connectionString);
             return true;
         } catch (SQLException e) {
             return false;
@@ -90,10 +101,10 @@ public class Database {
             createTable = ""
                     + "CREATE TABLE IF NOT EXISTS agents ("
                     + "    id integer CONSTRAINT agent_key PRIMARY KEY,"
-                    + "    is_supplier boolean"
+                    + "    is_supplier boolean,"
                     + "    name varchar(64) NOT NULL,"
                     + "    last_name varchar(32),"
-                    + "    address varchar(64) NOT NULL,"
+                    + "    address varchar(64) NOT NULL"
                     + ");";
             stmt.execute(createTable);
 
@@ -125,30 +136,31 @@ public class Database {
 
     private boolean createPreparedStatements() {
         try {
-            prescriberEntry = con.prepareStatement(""
+            prescriberInsert = con.prepareStatement(""
                     + "INSERT INTO prescribers"
                     + "    (first_name, last_name, prescriber_num)"
                     + "    VALUES (?, ?, ?);"
             );
 
-            pharmacistEntry = con.prepareStatement(""
+            pharmacistInsert = con.prepareStatement(""
                     + "INSERT INTO pharmacists"
                     + "    (first_name, last_name, registration)"
                     + "    VALUES (?, ?, ?);"
             );
 
-            drugEntry = con.prepareStatement(""
+            drugInsert = con.prepareStatement(""
                     + "INSERT INTO drugs"
                     + "    (name, strength, form)"
-                    + "    VALUES (?, ?, ?);");
-            
-            agentEntry = con.prepareStatement(""
+                    + "    VALUES (?, ?, ?);"
+            );
+
+            agentInsert = con.prepareStatement(""
                     + "INSERT INTO agents"
                     + "    (is_supplier, name, last_name, address)"
                     + "    VALUES (?, ?, ?, ?);"
             );
 
-            transferEntry = con.prepareStatement(""
+            transferInsert = con.prepareStatement(""
                     + "INSERT INTO transfers ("
                     + "        transfer_date,"
                     + "        agent_id,"
@@ -163,6 +175,39 @@ public class Database {
                     + ")"
                     + "    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
             );
+
+            prescriberSearch = con.prepareStatement(""
+                    + "SELECT * FROM prescribers"
+                    + "    WHERE last_name like ?"
+                    + "    ORDER BY last_name ASC, first_name ASC;"
+            );
+
+            pharmacistSearch = con.prepareStatement(""
+                    + "SELECT * FROM pharmacists"
+                    + "    WHERE last_name like ?"
+                    + "    ORDER BY last_name ASC, first_name ASC;"
+            );
+
+            drugSearch = con.prepareStatement(""
+                    + "SELECT * FROM drugs"
+                    + "    WHERE name like ?"
+                    + "    ORDER BY name ASC, strength ASC, form ASC;"
+            );
+
+            // SQLite implements boolean as a 1 bit integer.
+            patientSearch = con.prepareStatement(""
+                    + "SELECT * FROM agents"
+                    + "    WHERE is_supplier = 0 AND last_name LIKE ?"
+                    + "    ORDER BY last_name ASC, name ASC;"
+            );
+
+            // SQLite implements boolean as a 1 bit integer.
+            supplierSearch = con.prepareStatement(""
+                    + "SELECT * FROM agents"
+                    + "    WHERE is_supplier = 1 AND name LIKE ?"
+                    + "    ORDER BY name ASC;"
+            );
+            
             return true;
 
         } catch (SQLException e) {
@@ -179,10 +224,10 @@ public class Database {
     public boolean addPrescriber(Prescriber prescriber) {
 
         try {
-            prescriberEntry.setString(1, prescriber.getFirstName());
-            prescriberEntry.setString(2, prescriber.getLastName());
-            prescriberEntry.setString(THIRD_COLUMN, prescriber.getprescriberNum());
-            prescriberEntry.execute();
+            prescriberInsert.setString(1, prescriber.getFirstName());
+            prescriberInsert.setString(2, prescriber.getLastName());
+            prescriberInsert.setString(THIRD_COLUMN, prescriber.getprescriberNum());
+            prescriberInsert.execute();
 
             return true;
         } catch (SQLException e) {
@@ -196,10 +241,10 @@ public class Database {
      */
     public boolean addPharmacist(Pharmacist pharmacist) {
         try {
-            pharmacistEntry.setString(1, pharmacist.getFirstName());
-            pharmacistEntry.setString(2, pharmacist.getLastName());
-            pharmacistEntry.setString(THIRD_COLUMN, pharmacist.getRegistration());
-            pharmacistEntry.execute();
+            pharmacistInsert.setString(1, pharmacist.getFirstName());
+            pharmacistInsert.setString(2, pharmacist.getLastName());
+            pharmacistInsert.setString(THIRD_COLUMN, pharmacist.getRegistration());
+            pharmacistInsert.execute();
 
             return true;
         } catch (SQLException e) {
@@ -213,10 +258,10 @@ public class Database {
      */
     public boolean addDrug(Drug drug) {
         try {
-            drugEntry.setString(2, drug.getName());
-            drugEntry.setString(3, drug.getStrength());
-            drugEntry.setString(THIRD_COLUMN, drug.getDose_form());
-            drugEntry.execute();
+            drugInsert.setString(1, drug.getName());
+            drugInsert.setString(2, drug.getStrength());
+            drugInsert.setString(THIRD_COLUMN, drug.getDose_form());
+            drugInsert.execute();
 
             return true;
         } catch (SQLException e) {
@@ -224,7 +269,7 @@ public class Database {
         }
     }
 
-    /*
+    /**
      * Adds a patient to the database. Patients and suppliers are added
      * to the same table in database because their keys are used in the
      * same column in the transfers table. Returns true if no SQLException
@@ -232,10 +277,11 @@ public class Database {
      */
     public boolean addPatient(Patient patient) {
         try {
-            agentEntry.setString(1, "false");
-            agentEntry.setString(2, patient.getFirstName());
-            agentEntry.setString(THIRD_COLUMN, patient.getLastName());
-            agentEntry.setString(FOURTH_COLUMN, patient.getAddress_name());
+            agentInsert.setBoolean(1, false); 
+            agentInsert.setString(2, patient.getFirstName());
+            agentInsert.setString(THIRD_COLUMN, patient.getLastName());
+            agentInsert.setString(FOURTH_COLUMN, patient.getAddress_name());
+            agentInsert.execute();
 
             return true;
         } catch (SQLException e) {
@@ -243,7 +289,7 @@ public class Database {
         }
     }
 
-    /*
+    /**
      * Adds a supplier to the database. Patients and suppliers are added
      * to the same table in database because their keys are used in the
      * same column in the transfers table. Returns true if no SQLException
@@ -251,10 +297,11 @@ public class Database {
      */
     public boolean addSupplier(Supplier supplier) {
         try {
-            agentEntry.setString(1, "true");
-            agentEntry.setString(2, supplier.getName());
-            agentEntry.setString(THIRD_COLUMN, "");
-            agentEntry.setString(FOURTH_COLUMN, supplier.getAddress());
+            agentInsert.setBoolean(1, true);
+            agentInsert.setString(2, supplier.getName());
+            agentInsert.setString(THIRD_COLUMN, "");
+            agentInsert.setString(FOURTH_COLUMN, supplier.getAddress());
+            agentInsert.execute();
 
             return true;
         } catch (SQLException e) {
@@ -268,32 +315,92 @@ public class Database {
     public boolean addTransferEntry() {
         try {
 
-            transferEntry.execute();
+            transferInsert.execute();
 
             return true;
         } catch (SQLException e) {
             return false;
         }
-
     }
 
-    // public static void main(String[] args) {
-    // dbConnector dbInterface = new dbConnector();
+    /**
+     * Returns a ResultSet of prescribers whose last name matches
+     * the search term. Returns null if there was an SQLException.
+     */
+    public ResultSet getPrescribers(String searchTerm) {
+        try {
+            prescriberSearch.setString(1, searchTerm + '%');
+            prescriberSearch.execute();
 
-    // dbInterface.connect();
+            ResultSet results = prescriberSearch.getResultSet();
+            return results;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
 
-    // try {
-    // Statement statement = dbInterface.con.createStatement();
+    /**
+     * Returns a ResultSet of pharmacists whose last name matches the
+     * search term. Returns null if there was an SQLException.
+     **/
+    public ResultSet getPharmacists(String searchTerm) {
+        try {
+            pharmacistSearch.setString(1, searchTerm + '%');
+            pharmacistSearch.execute();
 
-    // String query =
-    // "CREATE TABLE IF NOT EXISTS drug (id integer PRIMARY KEY,"z
-    // + " trade_name char(16), generic_name char(32),"
-    // + " strength char(16));";
-    // statement.execute(query);
+            ResultSet results = pharmacistSearch.getResultSet();
+            return results;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
 
-    // } catch (SQLException e) {
-    // System.out.println(e);
-    // System.exit(0);
-    // }
-    // }
+    /**
+     * Returns a ResultSet of drugs whose name matches the search
+     * term. Returns null if there was an SQLException.
+     **/
+    public ResultSet getDrugs(String searchTerm) {
+        try {
+            drugSearch.setString(1, searchTerm + '%');
+            drugSearch.execute();
+
+            ResultSet results = drugSearch.getResultSet();
+            return results;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a ResultSet of parients whose last name matches the
+     * search term. Returns null if there was an SQLException.
+     **/
+    public ResultSet getPatients(String searchTerm) {
+        try {
+            patientSearch.setString(1, searchTerm + '%');
+            patientSearch.execute();
+
+            ResultSet results = patientSearch.getResultSet();
+            return results;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a ResultSet of suppliers whose last name matches the
+     * search term. Returns null if there was an SQLException.
+     **/
+    public ResultSet getSuppliers(String searchTerm) {
+        try {
+            supplierSearch.setString(1, searchTerm + '%');
+            supplierSearch.execute();
+
+            ResultSet results = supplierSearch.getResultSet();
+            return results;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+    
 }

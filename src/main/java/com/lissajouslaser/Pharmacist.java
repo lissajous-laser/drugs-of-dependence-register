@@ -12,7 +12,7 @@ public class Pharmacist extends Person {
      */
     public Pharmacist(String firstName, String lastName, String registration) {
         super(firstName, lastName);
-        this.registration = registration.toLowerCase();
+        this.registration = registration.toUpperCase();
     }
 
     public String getRegistration() {
@@ -51,8 +51,8 @@ public class Pharmacist extends Person {
             return "Registration must be " + registrationLength
                     + " characters.";
         }
-        if (!registration.matches("pha[0-9]+")) {
-            return "Registration must be as printed your card.";
+        if (!registration.matches("PHA[0-9]+")) {
+            return "Registration must be as printed your certificate.";
         }
         return null;
     }

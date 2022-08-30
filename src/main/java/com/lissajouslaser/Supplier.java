@@ -10,8 +10,8 @@ public class Supplier {
     private String address;
 
     public Supplier(String name, String address) {
-        this.name = name.toLowerCase();
-        this.address = address.toLowerCase();
+        this.name = name.toUpperCase();
+        this.address = address.toUpperCase();
     }
 
     public String getName() {
@@ -63,7 +63,7 @@ public class Supplier {
             return "Address must be " + MAX_ADDRESS_LENGTH
                     + " characters or less";
         }
-        if (!address.matches("[a-z0-9\\-/ ,]+")) {
+        if (!address.matches("[A-Z0-9\\-/ ,]+")) {
             return "Address can only have characters a-z, 0-9, spaces, commas,"
                     + " /, -,";
         }

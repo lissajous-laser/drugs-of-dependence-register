@@ -11,8 +11,8 @@ public abstract class Person {
     private String lastName;
 
     public Person(String firstName, String lastName) {
-        this.firstName = firstName.toLowerCase();
-        this.lastName = lastName.toLowerCase();
+        this.firstName = firstName.toUpperCase();
+        this.lastName = lastName.toUpperCase();
     }
 
     public String getFirstName() {
@@ -30,14 +30,14 @@ public abstract class Person {
      **/
     String validateFirstName() {
         if (firstName.isEmpty()) {
-            return "First name cannot be empty";
+            return "Cannot be empty";
         }
         if (firstName.length() > FIRST_NAME_MAX_LENGTH) {
-            return "First name must be " + FIRST_NAME_MAX_LENGTH
+            return "Must be " + FIRST_NAME_MAX_LENGTH
                     + " characters or less";
         }
-        if (!firstName.matches("[a-z\\-]+")) {
-            return "First name can only have alphabetical letters or hyphens";
+        if (!firstName.matches("[A-Z\\-]+")) {
+            return "Can only have letters or hyphens";
         }
         return null;
     }
@@ -49,14 +49,14 @@ public abstract class Person {
      **/
     String validateLastName() {
         if (lastName.isEmpty()) {
-            return "Last name cannot be empty";
+            return "Cannot be empty";
         }
         if (lastName.length() > LAST_NAME_MAX_LENGTH) {
-            return "Last name must be " + LAST_NAME_MAX_LENGTH
+            return "Must be " + LAST_NAME_MAX_LENGTH
                     + " characters or less";
         }
-        if (!lastName.matches("[a-z\\-]+")) {
-            return "Last name can only have alphabetical letters or hyphens";
+        if (!lastName.matches("[A-Z\\-]+")) {
+            return "Can only have letters or hyphens";
         }
         return null;
     }
