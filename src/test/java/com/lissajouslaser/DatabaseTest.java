@@ -15,11 +15,11 @@ import org.junit.jupiter.api.Test;
  */
 public class DatabaseTest {
     static final String TEST_DB_FILE = "_test.db";
-    Database db;
+    DatabaseConnection db;
 
     @BeforeEach
     void createDatabase() {
-        db = new Database(TEST_DB_FILE);
+        db = new DatabaseConnection(TEST_DB_FILE);
     }
 
     @AfterEach
@@ -198,14 +198,19 @@ public class DatabaseTest {
         statement.execute("SELECT * FROM agents;");
         
         ResultSet results = statement.getResultSet();
-        boolean isSupplier = results.getBoolean(2);
-        String firstName = results.getString(3);
-        String lastName = results.getString(4);
-        String address = results.getString(5);
+
+        var stringBuilder = new StringBuilder();
+        while (results.next()) {
+                stringBuilder.append(results.getBoolean(2));
+                stringBuilder.append(results.getString(3));
+                stringBuilder.append(results.getString(4));
+                stringBuilder.append(results.getString(5));
+                stringBuilder.append(results.getString(6));                
+        }    
 
         assertEquals(
                 "falseNAPOLEONBONAPARTE38 PARISIAN STREET, ARMADALE",
-                isSupplier + firstName + lastName + address);
+                stringBuilder.substring(0));
     }
 
     @Test
@@ -220,13 +225,19 @@ public class DatabaseTest {
         statement.execute("SELECT * FROM agents;");
         
         ResultSet results = statement.getResultSet();
-        boolean isSupplier = results.getBoolean(2);
-        String name = results.getString(3);
-        String address = results.getString(5);
+
+        var stringBuilder = new StringBuilder();
+        while (results.next()) {
+                stringBuilder.append(results.getBoolean(2));
+                stringBuilder.append(results.getString(3));
+                stringBuilder.append(results.getString(4));
+                stringBuilder.append(results.getString(5));
+                stringBuilder.append(results.getString(6));                
+        }    
 
         assertEquals(
                 "trueSIGMA HEALTHCARE2125 DANDENONG RD, CLAYTON VIC 3168",
-                isSupplier + name + address);
+                stringBuilder.substring(0));
     }
 
     @Test
@@ -248,25 +259,20 @@ public class DatabaseTest {
         statement.execute("SELECT * FROM agents ORDER BY id ASC;");
         
         ResultSet results = statement.getResultSet();
-        boolean isSupplierPatient = results.getBoolean(2);
-        String firstName = results.getString(3);
-        String lastName = results.getString(4);
-        String addressPatient = results.getString(5);
 
-        // Need to call next() twice to get to second column,
-        // not sure why.
-        results.next();
-        results.next();
-
-        boolean isSupplierSupplier = results.getBoolean(2);
-        String name = results.getString(3);
-        String addressSupplier = results.getString(5);        
+        var stringBuilder = new StringBuilder();
+        while (results.next()) {
+                stringBuilder.append(results.getBoolean(2));
+                stringBuilder.append(results.getString(3));
+                stringBuilder.append(results.getString(4));
+                stringBuilder.append(results.getString(5));
+                stringBuilder.append(results.getString(6));                
+        }       
 
         assertEquals(
                 "falseNAPOLEONBONAPARTE38 PARISIAN STREET, ARMADALE"
                 + "trueSIGMA HEALTHCARE2125 DANDENONG RD, CLAYTON VIC 3168",
-                isSupplierPatient + firstName + lastName + addressPatient
-                + isSupplierSupplier + name + addressSupplier);        
+                stringBuilder.substring(0));        
     }
 
     @Test
@@ -422,6 +428,7 @@ public class DatabaseTest {
             stringBuilder.append(results.getString(3));
             stringBuilder.append(results.getString(4));
             stringBuilder.append(results.getString(5));
+            stringBuilder.append(results.getString(6));
         }
 
         assertEquals(
@@ -451,7 +458,9 @@ public class DatabaseTest {
         var stringBuilder = new StringBuilder();
         while (results.next()) {
             stringBuilder.append(results.getString(3));
+            stringBuilder.append(results.getString(4));
             stringBuilder.append(results.getString(5));
+            stringBuilder.append(results.getString(6));
         }
 
         assertEquals(

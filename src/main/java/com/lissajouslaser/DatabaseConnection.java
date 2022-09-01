@@ -6,13 +6,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Represents the database.
+ * Represents the database connection, and provides methods
+ * for interacting with the database.
  */
-public class Database {
-    static final int THIRD_COLUMN = 3;
-    static final int FOURTH_COLUMN = 4;
+public class DatabaseConnection {
     private Connection con;
     private PreparedStatement prescriberInsert;
     private PreparedStatement pharmacistInsert;
@@ -24,21 +25,21 @@ public class Database {
     private PreparedStatement drugSearch;
     private PreparedStatement patientSearch;
     private PreparedStatement supplierSearch;
-
+    private PreparedStatement agentSearch;
 
     /**
      * Default constructor. Connects to database and prepares
      * prepared SQL queries.
      */
-    public Database() {
+    public DatabaseConnection() {
         this("records.db");
     }
 
     /**
      * Constructor with specified database file.
      */
-    public Database(String fileName) {
-        System.out.println(connect("jdbc:sqlite:file:" + fileName));
+    public DatabaseConnection(String fileName) {
+        System.out.println(connect("jdbc:sqlite:" + fileName));
         System.out.println(createTables());
         System.out.println(createPreparedStatements());
     }
@@ -76,7 +77,7 @@ public class Database {
                     + "    id integer CONSTRAINT drug_id PRIMARY KEY,"
                     + "    name varchar(32) NOT NULL,"
                     + "    strength varchar(16) NOT NULL,"
-                    + "    form varchar(16) NOT NULL"
+                    + "    dose_form varchar(16) NOT NULL"
                     + " );";
             stmt.execute(createTable);
 
@@ -101,9 +102,10 @@ public class Database {
             createTable = ""
                     + "CREATE TABLE IF NOT EXISTS agents ("
                     + "    id integer CONSTRAINT agent_key PRIMARY KEY,"
-                    + "    is_supplier boolean,"
-                    + "    name varchar(64) NOT NULL,"
+                    + "    is_supplier boolean NOT NULL,"
+                    + "    first_name varchar(16),"
                     + "    last_name varchar(32),"
+                    + "    company_name varchar(64),"
                     + "    address varchar(64) NOT NULL"
                     + ");";
             stmt.execute(createTable);
@@ -137,28 +139,24 @@ public class Database {
     private boolean createPreparedStatements() {
         try {
             prescriberInsert = con.prepareStatement(""
-                    + "INSERT INTO prescribers"
-                    + "    (first_name, last_name, prescriber_num)"
-                    + "    VALUES (?, ?, ?);"
-            );
+                    + "INSERT INTO prescribers "
+                    + "    (first_name, last_name, prescriber_num) "
+                    + "VALUES (?, ?, ?);");
 
             pharmacistInsert = con.prepareStatement(""
-                    + "INSERT INTO pharmacists"
-                    + "    (first_name, last_name, registration)"
-                    + "    VALUES (?, ?, ?);"
-            );
+                    + "INSERT INTO pharmacists "
+                    + "    (first_name, last_name, registration) "
+                    + "VALUES (?, ?, ?);");
 
             drugInsert = con.prepareStatement(""
-                    + "INSERT INTO drugs"
-                    + "    (name, strength, form)"
-                    + "    VALUES (?, ?, ?);"
-            );
+                    + "INSERT INTO drugs "
+                    + "    (name, strength, dose_form) "
+                    + "VALUES (?, ?, ?);");
 
             agentInsert = con.prepareStatement(""
-                    + "INSERT INTO agents"
-                    + "    (is_supplier, name, last_name, address)"
-                    + "    VALUES (?, ?, ?, ?);"
-            );
+                    + "INSERT INTO agents "
+                    + "    (is_supplier, first_name, last_name, company_name, address) "
+                    + "VALUES (?, ?, ?, ?, ?);");
 
             transferInsert = con.prepareStatement(""
                     + "INSERT INTO transfers ("
@@ -173,48 +171,46 @@ public class Database {
                     + "        reference,"
                     + "        notes"
                     + ")"
-                    + "    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
-            );
+                    + "    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
 
             prescriberSearch = con.prepareStatement(""
-                    + "SELECT * FROM prescribers"
-                    + "    WHERE last_name like ?"
-                    + "    ORDER BY last_name ASC, first_name ASC;"
-            );
+                    + "SELECT * FROM prescribers "
+                    + "WHERE last_name like ? "
+                    + "ORDER BY last_name ASC, first_name ASC;");
 
             pharmacistSearch = con.prepareStatement(""
-                    + "SELECT * FROM pharmacists"
-                    + "    WHERE last_name like ?"
-                    + "    ORDER BY last_name ASC, first_name ASC;"
-            );
+                    + "SELECT * FROM pharmacists "
+                    + "WHERE last_name like ?"
+                    + "ORDER BY last_name ASC, first_name ASC;");
 
             drugSearch = con.prepareStatement(""
-                    + "SELECT * FROM drugs"
-                    + "    WHERE name like ?"
-                    + "    ORDER BY name ASC, strength ASC, form ASC;"
-            );
+                    + "SELECT * FROM drugs "
+                    + "WHERE name like ? "
+                    + "ORDER BY name ASC, strength ASC, dose_form ASC;");
 
             // SQLite implements boolean as a 1 bit integer.
             patientSearch = con.prepareStatement(""
-                    + "SELECT * FROM agents"
-                    + "    WHERE is_supplier = 0 AND last_name LIKE ?"
-                    + "    ORDER BY last_name ASC, name ASC;"
-            );
+                    + "SELECT * FROM agents "
+                    + "WHERE is_supplier = 0 AND last_name LIKE ? "
+                    + "ORDER BY last_name ASC, first_name ASC;");
 
             // SQLite implements boolean as a 1 bit integer.
             supplierSearch = con.prepareStatement(""
-                    + "SELECT * FROM agents"
-                    + "    WHERE is_supplier = 1 AND name LIKE ?"
-                    + "    ORDER BY name ASC;"
-            );
-            
+                    + "SELECT * FROM agents "
+                    + "WHERE is_supplier = 1 AND company_name LIKE ? "
+                    + "ORDER BY company_name ASC;");
+
+            agentSearch = con.prepareStatement(""
+                    + "SELECT * FROM agents "
+                    + "WHERE company_name LIKE ? OR last_name LIKE ? "
+                    + "ORDER BY is_supplier DESC, last_name ASC, first_name ASC;");
+
             return true;
 
         } catch (SQLException e) {
             System.out.println(e);
             return false;
         }
-
     }
 
     /**
@@ -226,7 +222,7 @@ public class Database {
         try {
             prescriberInsert.setString(1, prescriber.getFirstName());
             prescriberInsert.setString(2, prescriber.getLastName());
-            prescriberInsert.setString(THIRD_COLUMN, prescriber.getprescriberNum());
+            prescriberInsert.setString(3, prescriber.getprescriberNum());
             prescriberInsert.execute();
 
             return true;
@@ -243,7 +239,7 @@ public class Database {
         try {
             pharmacistInsert.setString(1, pharmacist.getFirstName());
             pharmacistInsert.setString(2, pharmacist.getLastName());
-            pharmacistInsert.setString(THIRD_COLUMN, pharmacist.getRegistration());
+            pharmacistInsert.setString(3, pharmacist.getRegistration());
             pharmacistInsert.execute();
 
             return true;
@@ -260,7 +256,7 @@ public class Database {
         try {
             drugInsert.setString(1, drug.getName());
             drugInsert.setString(2, drug.getStrength());
-            drugInsert.setString(THIRD_COLUMN, drug.getDose_form());
+            drugInsert.setString(3, drug.getDose_form());
             drugInsert.execute();
 
             return true;
@@ -276,11 +272,18 @@ public class Database {
      * was encountered.
      */
     public boolean addPatient(Patient patient) {
+        int isBooleanIdx = 1;
+        int firstNameIdx = 2;
+        int lastNameIdx = 3;
+        int companyNameIdx = 4;
+        int addressIdx = 5;
+
         try {
-            agentInsert.setBoolean(1, false); 
-            agentInsert.setString(2, patient.getFirstName());
-            agentInsert.setString(THIRD_COLUMN, patient.getLastName());
-            agentInsert.setString(FOURTH_COLUMN, patient.getAddress_name());
+            agentInsert.setBoolean(isBooleanIdx, false);
+            agentInsert.setString(firstNameIdx, patient.getFirstName());
+            agentInsert.setString(lastNameIdx, patient.getLastName());
+            agentInsert.setString(companyNameIdx, "");
+            agentInsert.setString(addressIdx, patient.getAddress());
             agentInsert.execute();
 
             return true;
@@ -296,11 +299,18 @@ public class Database {
      * was encountered.
      */
     public boolean addSupplier(Supplier supplier) {
+        int isBooleanIdx = 1;
+        int firstNameIdx = 2;
+        int lastNameIdx = 3;
+        int companyNameIdx = 4;
+        int addressIdx = 5;
+
         try {
-            agentInsert.setBoolean(1, true);
-            agentInsert.setString(2, supplier.getName());
-            agentInsert.setString(THIRD_COLUMN, "");
-            agentInsert.setString(FOURTH_COLUMN, supplier.getAddress());
+            agentInsert.setBoolean(isBooleanIdx, true);
+            agentInsert.setString(firstNameIdx, "");
+            agentInsert.setString(lastNameIdx, "");
+            agentInsert.setString(companyNameIdx, supplier.getName());
+            agentInsert.setString(addressIdx, supplier.getAddress());
             agentInsert.execute();
 
             return true;
@@ -314,7 +324,6 @@ public class Database {
      */
     public boolean addTransferEntry() {
         try {
-
             transferInsert.execute();
 
             return true;
@@ -332,8 +341,7 @@ public class Database {
             prescriberSearch.setString(1, searchTerm + '%');
             prescriberSearch.execute();
 
-            ResultSet results = prescriberSearch.getResultSet();
-            return results;
+            return prescriberSearch.getResultSet();
         } catch (SQLException e) {
             return null;
         }
@@ -348,8 +356,7 @@ public class Database {
             pharmacistSearch.setString(1, searchTerm + '%');
             pharmacistSearch.execute();
 
-            ResultSet results = pharmacistSearch.getResultSet();
-            return results;
+            return pharmacistSearch.getResultSet();
         } catch (SQLException e) {
             return null;
         }
@@ -364,8 +371,7 @@ public class Database {
             drugSearch.setString(1, searchTerm + '%');
             drugSearch.execute();
 
-            ResultSet results = drugSearch.getResultSet();
-            return results;
+            return drugSearch.getResultSet();
         } catch (SQLException e) {
             return null;
         }
@@ -380,8 +386,7 @@ public class Database {
             patientSearch.setString(1, searchTerm + '%');
             patientSearch.execute();
 
-            ResultSet results = patientSearch.getResultSet();
-            return results;
+            return patientSearch.getResultSet();
         } catch (SQLException e) {
             return null;
         }
@@ -396,11 +401,70 @@ public class Database {
             supplierSearch.setString(1, searchTerm + '%');
             supplierSearch.execute();
 
-            ResultSet results = supplierSearch.getResultSet();
-            return results;
+            return supplierSearch.getResultSet();
         } catch (SQLException e) {
             return null;
         }
     }
-    
+
+    /**
+     * Returns results of getSuppliers() and getPatients()
+     * combined.
+     **/
+    public ResultSet getAgents(String searchTerm) {
+        try {
+            agentSearch.setString(1, searchTerm + '%');
+            agentSearch.setString(2, searchTerm + '%');
+            agentSearch.execute();
+
+            return agentSearch.getResultSet();
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns list of DbRows of agents matching the
+     * searchTerm.
+     */
+    public List<IAgent> getAgentAsList(String searchTerm) {
+        int idIdx = 1;
+        int firstNameIdx = 3;
+        int lastNameIdx = 4;
+        int companyNameIdx = 5;
+        int addressIdx = 6;
+
+        ResultSet results = getAgents(searchTerm);
+        List<IAgent> resultsAsList = new ArrayList<>();
+
+        if (results == null) {
+            return null;
+        }
+        try {
+
+            while (results.next()) {
+                if (results.getBoolean(2)) {
+                    // Case: supplier.
+                    var supplier = new Supplier(
+                            results.getInt(idIdx),
+                            results.getString(companyNameIdx),
+                            results.getString(addressIdx)
+                            );
+                    resultsAsList.add(supplier);
+                } else {
+                    // Case: patient.
+                    var patient = new Patient(
+                            results.getInt(idIdx),
+                            results.getString(firstNameIdx),
+                            results.getString(lastNameIdx),
+                            results.getString(addressIdx)
+                            );
+                    resultsAsList.add(patient);
+                }
+            }
+            return resultsAsList;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
 }

@@ -4,11 +4,13 @@ package com.lissajouslaser;
  * Defines a prescriber, e.g. doctor, optometrist, dentist.
  */
 public class Prescriber extends Person {
-    static final int prescriberNumLength = 7;
+    static final int PRESCRIBER_NUM_LENGTH = 7;
+    private int id;
     private String prescriberNum;
 
     /**
-     * Constructor.
+     * Constructor without id parameter. Used to insert entries to
+     * database, where the primary key (id) has not yet been assigned.
      */
     public Prescriber(
             String firstName,
@@ -16,6 +18,23 @@ public class Prescriber extends Person {
             String prescriberNum) {
         super(firstName, lastName);
         this.prescriberNum = prescriberNum.toUpperCase();
+    }
+
+    /**
+     * Constructor with id parameter.
+     */
+    public Prescriber(
+            int id,
+            String firstName,
+            String lastName,
+            String prescriberNum) {
+        super(firstName, lastName);
+        this.id = id;
+        this.prescriberNum = prescriberNum.toUpperCase();
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getprescriberNum() {
@@ -45,16 +64,34 @@ public class Prescriber extends Person {
         return errors;
     }
 
-    /*
-     * Prescriber number may be empty.
-     */
+    private String validateFirstName() {
+        return validateFirstName(getFirstName());
+    }
+
+    private String validateLastName() {
+        return validateLastName(getLastName());
+    }
+
     private String validatePrescriberNumber() {
-        if (prescriberNum.length() != prescriberNumLength) {
-            return "Must be " + prescriberNumLength
+        if (prescriberNum.length() != PRESCRIBER_NUM_LENGTH) {
+            return "Must be " + PRESCRIBER_NUM_LENGTH
                     + " digits";
         }
-        if (!prescriberNum.matches("[0-9]+")) {
+        return validatePrescriberNumber(this.prescriberNum);
+    }
+
+    /*
+     * Validates partial input of presriber number, returns a String
+     * with a description of the first reason why address is invalid.
+     * Otherwise returns null. Permitted to be empty.
+     */
+    public static String validatePrescriberNumber(String prescriberNum) {
+        if (!prescriberNum.matches("[0-9]*")) {
             return "Must be in digits";
+        }
+        if (prescriberNum.length() > PRESCRIBER_NUM_LENGTH) {
+            return "Must be " + PRESCRIBER_NUM_LENGTH
+                    + " digits";
         }
         return null;
     }

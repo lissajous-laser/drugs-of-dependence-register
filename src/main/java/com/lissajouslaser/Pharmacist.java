@@ -4,19 +4,38 @@ package com.lissajouslaser;
  * Defines a pharmacist.
  */
 public class Pharmacist extends Person {
-    private final int registrationLength = 13;
+    static private final int REGISTRATION_LENGTH = 13;
+    private int id;
     private String registration;
 
     /**
-     * Constructor.
+     * Constructor without id parameter. Used to insert entries to
+     * database, where the primary key (id) has not yet been assigned.
      */
     public Pharmacist(String firstName, String lastName, String registration) {
         super(firstName, lastName);
         this.registration = registration.toUpperCase();
     }
 
+    /**
+     * Constructor with id parameter.
+     */
+    public Pharmacist(
+            int id,
+            String firstName,
+            String lastName,
+            String registration) {
+        super(firstName, lastName);
+        this.id = id;
+        this.registration = registration.toUpperCase();
+    }
+
     public String getRegistration() {
         return registration;
+    }
+
+    public int getId() {
+        return id;
     }
 
     /**
@@ -42,17 +61,40 @@ public class Pharmacist extends Person {
         return errors;
     }
 
-    /*
-     * Registration may be empty.
-     */
-    private String validateRegistration() {
+    private String validateFirstName() {
+        return validateFirstName(getFirstName());
+    }
 
-        if (registration.length() != registrationLength) {
-            return "Registration must be " + registrationLength
-                    + " characters.";
+    private String validateLastName() {
+        return validateLastName(getLastName());
+    }
+
+    private String validateRegistration() {
+        if (!registration.matches("PHA[0-9]{10}")) {
+            return "Must be as printed on you certicate";
         }
-        if (!registration.matches("PHA[0-9]+")) {
-            return "Registration must be as printed your certificate.";
+        if (registration.length() != REGISTRATION_LENGTH) {
+            return "Must be " + REGISTRATION_LENGTH
+                    + " characters";
+        }
+        return validateRegistration(this.registration);
+    }
+
+    /*
+     * Validates partial input of address, returns a String with a
+     * description of the first reason why address is invalid.
+     * Otherwise returns null. Registration permitted to be empty. A
+     * valid registration is of the form PHAxxxxxxxxxx, where x's are
+     * digits.
+     */
+
+    public static String validateRegistration(String registration) {
+        if (registration.length() > REGISTRATION_LENGTH) {
+            return "Must be " + REGISTRATION_LENGTH
+                    + " characters";
+        }
+        if (!registration.matches("[PHA0-9]*")) {
+            return "Must be as printed your certificate";
         }
         return null;
     }

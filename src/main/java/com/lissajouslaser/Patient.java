@@ -3,20 +3,27 @@ package com.lissajouslaser;
 /**
  * Defines a patient.
  */
-public class Patient extends Person {
+public class Patient extends Person implements IAgent {
     static final int MAX_ADDRESS_LENGTH = 64;
+    private int id;
     private String address;
 
     /**
-     * Constructor.
+     * Constructor without id parameter. Used to insert entries to
+     * database, where the primary key (id) has not yet been assigned.
      */
     public Patient(String firstName, String lastName, String address) {
         super(firstName, lastName);
         this.address = address.toUpperCase();
     }
 
-    public String getAddress_name() {
-        return address;
+    /**
+     * Constructor with id parameter.
+     */
+    public Patient(int id, String firstName, String lastName, String address) {
+        super(firstName, lastName);
+        this.id = id;
+        this.address = address.toUpperCase();
     }
 
     /**
@@ -42,18 +49,53 @@ public class Patient extends Person {
         return errors;
     }
 
+    private String validateFirstName() {
+        return validateFirstName(getFirstName());
+    }
+
+    private String validateLastName() {
+        return validateLastName(getLastName());
+    }
+
     private String validateAddress() {
+        return validateAddress(this.address);
+    }
+
+    /**
+     * Validates partial input of address, returns a String with a
+     * description of the first reason why address is invalid.
+     * Otherwise returns null.
+     **/
+    public static String validateAddress(String address) {
         if (address.isEmpty()) {
-            return "Address cannot be empty";
+            return "Must fill in";
         }
         if (address.length() > MAX_ADDRESS_LENGTH) {
-            return "Address must be " + MAX_ADDRESS_LENGTH
+            return "Must be " + MAX_ADDRESS_LENGTH
                     + " characters or less";
         }
         if (!address.matches("[A-Z0-9\\-/ ,]+")) {
-            return "Address can only have characters a-z, 0-9, spaces, commas,"
-                    + " /, -,";
+            return "Must be letters, numbers, spaces, or: /, -";
         }
         return null;
+    }
+
+    @Override
+    public String getName() {
+        return getLastName() + ", " + getFirstName();
+    }
+
+    @Override
+    public String getAddress() {
+        return address;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    @Override
+    public String toString() {
+        return getName() + " [" + getAddress() + "]";
     }
 }

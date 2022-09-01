@@ -24,6 +24,10 @@ public class DrugTest {
                 .filter(x -> x != null && !x.isEmpty())
                 .count();
         assertEquals(0, numberOfErrors);
+
+        // for (String error: drug.validate()) {
+        //     System.out.println(error);
+        // }
     }
 
     @Test
