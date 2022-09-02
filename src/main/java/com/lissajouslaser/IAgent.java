@@ -6,5 +6,6 @@ package com.lissajouslaser;
  */
 public interface IAgent {
     public String getName();
+
     public String getAddress();
 }

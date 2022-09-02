@@ -26,6 +26,7 @@ public class DatabaseConnection {
     private PreparedStatement patientSearch;
     private PreparedStatement supplierSearch;
     private PreparedStatement agentSearch;
+    private PreparedStatement balanceSearch;
 
     /**
      * Default constructor. Connects to database and prepares
@@ -204,6 +205,12 @@ public class DatabaseConnection {
                     + "SELECT * FROM agents "
                     + "WHERE company_name LIKE ? OR last_name LIKE ? "
                     + "ORDER BY is_supplier DESC, last_name ASC, first_name ASC;");
+
+            balanceSearch = con.prepareStatement(""
+                    + "SELECT balance FROM transfers "
+                    + "WHERE drug_id = ? "
+                    + "ORDER BY transfer_date DESC "
+                    + "LIMIT 1;");
 
             return true;
 
@@ -409,7 +416,7 @@ public class DatabaseConnection {
 
     /**
      * Returns results of getSuppliers() and getPatients()
-     * combined.
+     * combined. Returns null if there was an SQLException.
      **/
     public ResultSet getAgents(String searchTerm) {
         try {
@@ -424,10 +431,10 @@ public class DatabaseConnection {
     }
 
     /**
-     * Returns list of DbRows of agents matching the
-     * searchTerm.
-     */
-    public List<IAgent> getAgentAsList(String searchTerm) {
+     * Returns list of of agents (Patients and Suppliers) matching the
+     * searchTerm. Returns null if there was an SQLException.
+     **/
+    public List<IAgent> getAgentsList(String searchTerm) {
         int idIdx = 1;
         int firstNameIdx = 3;
         int lastNameIdx = 4;
@@ -441,15 +448,13 @@ public class DatabaseConnection {
             return null;
         }
         try {
-
             while (results.next()) {
                 if (results.getBoolean(2)) {
                     // Case: supplier.
                     var supplier = new Supplier(
                             results.getInt(idIdx),
                             results.getString(companyNameIdx),
-                            results.getString(addressIdx)
-                            );
+                            results.getString(addressIdx));
                     resultsAsList.add(supplier);
                 } else {
                     // Case: patient.
@@ -457,8 +462,7 @@ public class DatabaseConnection {
                             results.getInt(idIdx),
                             results.getString(firstNameIdx),
                             results.getString(lastNameIdx),
-                            results.getString(addressIdx)
-                            );
+                            results.getString(addressIdx));
                     resultsAsList.add(patient);
                 }
             }
@@ -466,5 +470,154 @@ public class DatabaseConnection {
         } catch (SQLException e) {
             return null;
         }
+    }
+
+    /**
+     * Returns list of Prescribers matching the searchTerm.
+     * Returns null if there was an SQLException.
+     */
+    public List<Prescriber> getPrescribersList(String searchTerm) {
+        int idIdx = 1;
+        int firstNameIdx = 2;
+        int lastNameIdx = 3;
+        int prescriberNumIdx = 4;
+
+        ResultSet results = getPrescribers(searchTerm);
+        List<Prescriber> resultsAsList = new ArrayList<>();
+
+        if (results == null) {
+            return null;
+        }
+        try {
+            while (results.next()) {
+                var prescriber = new Prescriber(
+                        results.getInt(idIdx),
+                        results.getString(firstNameIdx),
+                        results.getString(lastNameIdx),
+                        results.getString(prescriberNumIdx));
+                resultsAsList.add(prescriber);
+            }
+            return resultsAsList;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a list of Pharmacists matching the searchTerm.
+     * Returns null if there was an SQLException.
+     */
+    public List<Pharmacist> getPharmacistsList(String searchTerm) {
+        int idIdx = 1;
+        int firstNameIdx = 2;
+        int lastNameIdx = 3;
+        int registrationIdx = 4;
+
+        ResultSet results = getPharmacists(searchTerm);
+        List<Pharmacist> resultsAsList = new ArrayList<>();
+
+        if (results == null) {
+            return null;
+        }
+        try {
+            while (results.next()) {
+                var pharmacist = new Pharmacist(
+                        results.getInt(idIdx),
+                        results.getString(firstNameIdx),
+                        results.getString(lastNameIdx),
+                        results.getString(registrationIdx));
+                resultsAsList.add(pharmacist);
+            }
+            return resultsAsList;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+
+    /**
+     * Returns a list of Pharmacists matching the searchTerm.
+     * Returns null if there was an SQLException.
+     */
+    public List<Patient> getPatientsList(String searchTerm) {
+        int idIdx = 1;
+        int firstNameIdx = 3;
+        int lastNameIdx = 4;
+        int address = 6;
+
+        ResultSet results = getPatients(searchTerm);
+        List<Patient> resultsAsList = new ArrayList<>();
+
+        if (results == null) {
+            return null;
+        }
+        try {
+            while (results.next()) {
+                var patient = new Patient(
+                        results.getInt(idIdx),
+                        results.getString(firstNameIdx),
+                        results.getString(lastNameIdx),
+                        results.getString(address));
+                resultsAsList.add(patient);
+            }
+            return resultsAsList;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a list of Drugs matching the searchTerm.
+     * Returns null if there was an SQLException.
+     */
+    public List<Drug> getDrugsList(String searchTerm) {
+        int idIdx = 1;
+        int nameIdx = 2;
+        int strengthIdx = 3;
+        int doseFormIdx = 4;
+
+        ResultSet results = getDrugs(searchTerm);
+        List<Drug> resultsAsList = new ArrayList<>();
+
+        if (results == null) {
+            return null;
+        }
+        try {
+            while (results.next()) {
+                var drug = new Drug(
+                        results.getInt(idIdx),
+                        results.getString(nameIdx),
+                        results.getString(strengthIdx),
+                        results.getString(doseFormIdx));
+                resultsAsList.add(drug);
+            }
+            return resultsAsList;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns current balance of a Drug with its primary key
+     * as the parameter. Returns -1 if there is no record
+     * or if there was an SQLException.
+     */
+    public int getBalance(int drugId) {
+        int balance = -1;
+
+        try {
+            balanceSearch.setInt(1, drugId);
+            balanceSearch.execute();
+
+            ResultSet results = balanceSearch.getResultSet();
+
+            if (results.next()) {
+                balance = results.getInt(1);
+            }
+
+            return balance;
+        } catch (SQLException e) {
+            return balance;
+        } 
     }
 }

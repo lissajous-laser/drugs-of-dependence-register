@@ -132,4 +132,9 @@ public class Drug {
         return null;
     }
 
+    @Override
+    public String toString() {
+        return name + " " + strength + " " + doseForm;
+    }
+
 }

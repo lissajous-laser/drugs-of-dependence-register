@@ -80,7 +80,7 @@ public class Prescriber extends Person {
         return validatePrescriberNumber(this.prescriberNum);
     }
 
-    /*
+    /**
      * Validates partial input of presriber number, returns a String
      * with a description of the first reason why address is invalid.
      * Otherwise returns null. Permitted to be empty.
@@ -94,5 +94,11 @@ public class Prescriber extends Person {
                     + " digits";
         }
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return getLastName() + ", " + getFirstName()
+                + " [" + prescriberNum + "]";
     }
 }

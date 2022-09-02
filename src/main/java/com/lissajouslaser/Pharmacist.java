@@ -4,7 +4,7 @@ package com.lissajouslaser;
  * Defines a pharmacist.
  */
 public class Pharmacist extends Person {
-    static private final int REGISTRATION_LENGTH = 13;
+    static final int REGISTRATION_LENGTH = 13;
     private int id;
     private String registration;
 
@@ -80,14 +80,13 @@ public class Pharmacist extends Person {
         return validateRegistration(this.registration);
     }
 
-    /*
+    /**
      * Validates partial input of address, returns a String with a
      * description of the first reason why address is invalid.
      * Otherwise returns null. Registration permitted to be empty. A
      * valid registration is of the form PHAxxxxxxxxxx, where x's are
      * digits.
      */
-
     public static String validateRegistration(String registration) {
         if (registration.length() > REGISTRATION_LENGTH) {
             return "Must be " + REGISTRATION_LENGTH
@@ -97,5 +96,11 @@ public class Pharmacist extends Person {
             return "Must be as printed your certificate";
         }
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return getLastName() + ", " + getFirstName()
+                + " [" + registration + "]";
     }
 }

@@ -201,12 +201,12 @@ public class DatabaseTest {
 
         var stringBuilder = new StringBuilder();
         while (results.next()) {
-                stringBuilder.append(results.getBoolean(2));
-                stringBuilder.append(results.getString(3));
-                stringBuilder.append(results.getString(4));
-                stringBuilder.append(results.getString(5));
-                stringBuilder.append(results.getString(6));                
-        }    
+            stringBuilder.append(results.getBoolean(2));
+            stringBuilder.append(results.getString(3));
+            stringBuilder.append(results.getString(4));
+            stringBuilder.append(results.getString(5));
+            stringBuilder.append(results.getString(6));                
+        }
 
         assertEquals(
                 "falseNAPOLEONBONAPARTE38 PARISIAN STREET, ARMADALE",

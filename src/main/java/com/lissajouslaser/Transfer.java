@@ -49,8 +49,7 @@ public class Transfer {
             int prescriberId,
             int pharmacistId,
             String reference,
-            String notes
-    ) {
+            String notes) {
         this.transferDate = transferDate;
         this.agentId = agentId;
         this.isSupplier = isSupplier;
@@ -110,6 +109,7 @@ public class Transfer {
      * drugId, agentId, prescriberId and pharmacistId are
      * assumed to be correct, because they should have been
      * searched using the database tables.
+     * 
      * @return An array of error messages, with each index
      *         representing a error message for a given field.
      *         0 - balance <- not a field, but derived from one.
@@ -134,6 +134,21 @@ public class Transfer {
     private String validateBalance() {
         if (newBalance < 0) {
             return "The resulting balance cannot be negative";
+        }
+        return null;
+    }
+
+    /**
+     * Validates partial input of quantity being supplied or received,
+     * returns a String with a description of the first reason why
+     * address is invalid. Otherwise returns null.
+     **/
+    public static String validateQty(String qty) {
+        if (qty.isEmpty()) {
+            return "Must fill in";
+        }
+        if (!qty.matches("[0-9]+")) {
+            return "Must be in digits";
         }
         return null;
     }

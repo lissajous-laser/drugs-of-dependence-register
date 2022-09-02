@@ -16,7 +16,7 @@
         <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
         <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
         <!-- JaCoCo thresholds. Increase gradually as you add tests. -->
-        <jacoco.unit-tests.limit.class-complexity>30</jacoco.unit-tests.limit.class-complexity>
+        <jacoco.unit-tests.limit.class-complexity>40</jacoco.unit-tests.limit.class-complexity>
         <jacoco.unit-tests.limit.method-complexity>10</jacoco.unit-tests.limit.method-complexity>
         <maven-checkstyle-plugin.version>3.2.0</maven-checkstyle-plugin.version>
         <checkstyle.version>9.3</checkstyle.version>
