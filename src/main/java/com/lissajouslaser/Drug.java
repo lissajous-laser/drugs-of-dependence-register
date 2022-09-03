@@ -63,6 +63,9 @@ public class Drug {
     }
 
     private String validateName() {
+        if (name.isEmpty()) {
+            return "Must fill in";
+        }
         return validateName(this.name);
     }
 
@@ -71,9 +74,6 @@ public class Drug {
      * string with an error message.
      */
     public static String validateName(String name) {
-        if (name.isEmpty()) {
-            return "Must fill in";
-        }
         if (name.length() > NAME_MAX_LENGTH) {
             return "Name must be " + NAME_MAX_LENGTH
                     + " characters or less";
@@ -88,6 +88,9 @@ public class Drug {
         if (!strength.matches("^[0-9][0-9A-Z/]*[A-Z]$")) {
             return "Must have numbers and units";
         }
+        if (strength.isEmpty()) {
+            return "Must fill in";
+        }
         return validateStrength(this.strength);
     }
 
@@ -96,20 +99,22 @@ public class Drug {
      * string with an error message.
      */
     public static String validateStrength(String strength) {
-        if (strength.isEmpty()) {
-            return "Must fill in";
-        }
+
         if (strength.length() > STRENGTH_MAX_LENGTH) {
             return "Must be " + STRENGTH_MAX_LENGTH
                     + " characters or less";
         }
-        if (!strength.matches("[0-9A-Z/]+")) {
+        if (!strength.isEmpty()
+                && !strength.matches("[0-9A-Z/]+")) {
             return "Must have numbers and have units";
         }
         return null;
     }
 
     private String validateDoseForm() {
+        if (doseForm.isEmpty()) {
+            return "Must fill in";
+        }
         return validateDoseForm(this.doseForm);
     }
 
@@ -119,14 +124,12 @@ public class Drug {
      * formulation, e.g. tablet, capsule, cream, nasal spray.
      */
     public static String validateDoseForm(String doseForm) {
-        if (doseForm.isEmpty()) {
-            return "Must fill in";
-        }
         if (doseForm.length() > DOSE_FORM_MAX_LENGTH) {
             return "Must be " + DOSE_FORM_MAX_LENGTH
                     + " characters or less";
         }
-        if (!doseForm.matches("[A-Z\\- ]+")) {
+        if (!doseForm.isEmpty()
+                && !doseForm.matches("[A-Z\\- ]+")) {
             return "Must only have letters, spaces, or hyphens";
         }
         return null;

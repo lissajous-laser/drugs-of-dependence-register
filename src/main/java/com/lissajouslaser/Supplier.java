@@ -47,13 +47,20 @@ public class Supplier implements IAgent {
         return errors;
     }
 
-    /*
-     * No character requirements for supplier name.
-     */
     private String validateName() {
         if (name.isEmpty()) {
             return "Must fill in";
         }
+        return validateName(this.name);
+    }
+
+    /*
+     * Validates partial input of address, returns a String with a
+     * description of the first reason why address is invalid.
+     * Otherwise returns null. No character requirements for supplier
+     * name.
+     */
+    public static String validateName(String name) {
         if (name.length() > MAX_NAME_LENGTH) {
             return "Name must be " + MAX_NAME_LENGTH
                     + " characters or less";
@@ -65,16 +72,10 @@ public class Supplier implements IAgent {
         if (address.isEmpty()) {
             return "Must fill in";
         }
-        if (address.length() > MAX_ADDRESS_LENGTH) {
-            return "Address must be " + MAX_ADDRESS_LENGTH
-                    + " characters or less";
-        }
-        if (!address.matches("[A-Z0-9\\-/ ,]+")) {
-            return "Must be letters, numbers, spaces, or: /, -";
-        }
-        return null;
+        return IAgent.validateAddress(this.address);
     }
 
+    @Override
     public int getId() {
         return id;
     }

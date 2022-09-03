@@ -2,6 +2,12 @@ package com.lissajouslaser;
 
 /**
  * Defines a prescriber, e.g. doctor, optometrist, dentist.
+ * Contains instance variables to carry data to and from a SQL
+ * database, and methods for input validation. Static input
+ * validation methods allow you to test indivdual inputs key by
+ * key in a GUI. validate() tests the instance variables all at
+ * once, and provides addional tests that cannot be performed on
+ * incomplete inputs.
  */
 public class Prescriber extends Person {
     static final int PRESCRIBER_NUM_LENGTH = 7;
@@ -64,14 +70,6 @@ public class Prescriber extends Person {
         return errors;
     }
 
-    private String validateFirstName() {
-        return validateFirstName(getFirstName());
-    }
-
-    private String validateLastName() {
-        return validateLastName(getLastName());
-    }
-
     private String validatePrescriberNumber() {
         if (prescriberNum.length() != PRESCRIBER_NUM_LENGTH) {
             return "Must be " + PRESCRIBER_NUM_LENGTH
@@ -86,7 +84,8 @@ public class Prescriber extends Person {
      * Otherwise returns null. Permitted to be empty.
      */
     public static String validatePrescriberNumber(String prescriberNum) {
-        if (!prescriberNum.matches("[0-9]*")) {
+        if (!prescriberNum.isEmpty()
+                && !prescriberNum.matches("[0-9]*")) {
             return "Must be in digits";
         }
         if (prescriberNum.length() > PRESCRIBER_NUM_LENGTH) {

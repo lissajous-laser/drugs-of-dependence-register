@@ -2,6 +2,13 @@ package com.lissajouslaser;
 
 /**
  * Defines a pharmacist.
+ * Contains instance variables to carry data to and from a SQL
+ * database, and methods for input validation. Static input
+ * validation methods allow you to test indivdual inputs key by
+ * key in a GUI. validate() tests the instance variables all at
+ * once, and provides addional tests that cannot be performed on
+ * incomplete inputs.
+
  */
 public class Pharmacist extends Person {
     static final int REGISTRATION_LENGTH = 13;
@@ -61,14 +68,6 @@ public class Pharmacist extends Person {
         return errors;
     }
 
-    private String validateFirstName() {
-        return validateFirstName(getFirstName());
-    }
-
-    private String validateLastName() {
-        return validateLastName(getLastName());
-    }
-
     private String validateRegistration() {
         if (!registration.matches("PHA[0-9]{10}")) {
             return "Must be as printed on you certicate";
@@ -92,7 +91,8 @@ public class Pharmacist extends Person {
             return "Must be " + REGISTRATION_LENGTH
                     + " characters";
         }
-        if (!registration.matches("[PHA0-9]*")) {
+        if (!registration.isEmpty()
+                && !registration.matches("[PHA0-9]*")) {
             return "Must be as printed your certificate";
         }
         return null;

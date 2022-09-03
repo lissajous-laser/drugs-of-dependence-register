@@ -1,11 +1,13 @@
 package com.lissajouslaser;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +21,8 @@ public class DatabaseConnection {
     private PreparedStatement pharmacistInsert;
     private PreparedStatement drugInsert;
     private PreparedStatement agentInsert;
-    private PreparedStatement transferInsert;
+    private PreparedStatement supplyInsert;
+    private PreparedStatement receiveInsert;
     private PreparedStatement prescriberSearch;
     private PreparedStatement pharmacistSearch;
     private PreparedStatement drugSearch;
@@ -114,7 +117,7 @@ public class DatabaseConnection {
             createTable = ""
                     + "CREATE TABLE IF NOT EXISTS transfers ("
                     + "    id integer CONSTRAINT transfer_key PRIMARY KEY,"
-                    + "    transfer_date timestamp NOT NULL,"
+                    + "    transfer_date date NOT NULL,"
                     + "    agent_id integer REFERENCES agents (id),"
                     + "    drug_id integer REFERENCES drugs (id),"
                     + "    qty_in integer,"
@@ -159,7 +162,7 @@ public class DatabaseConnection {
                     + "    (is_supplier, first_name, last_name, company_name, address) "
                     + "VALUES (?, ?, ?, ?, ?);");
 
-            transferInsert = con.prepareStatement(""
+            supplyInsert = con.prepareStatement(""
                     + "INSERT INTO transfers ("
                     + "        transfer_date,"
                     + "        agent_id,"
@@ -168,11 +171,25 @@ public class DatabaseConnection {
                     + "        qty_out,"
                     + "        balance,"
                     + "        prescriber_id,"
-                    + "        pharmacist_id,"
                     + "        reference,"
-                    + "        notes"
+                    + "        notes,"
+                    + "        pharmacist_id"
                     + ")"
                     + "    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+
+            receiveInsert = con.prepareStatement(""
+                    + "INSERT INTO transfers ("
+                    + "        transfer_date,"
+                    + "        agent_id,"
+                    + "        drug_id,"
+                    + "        qty_in,"
+                    + "        qty_out,"
+                    + "        balance,"
+                    + "        reference,"
+                    + "        notes,"
+                    + "        pharmacist_id"
+                    + ")"
+                    + "    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);");
 
             prescriberSearch = con.prepareStatement(""
                     + "SELECT * FROM prescribers "
@@ -209,7 +226,7 @@ public class DatabaseConnection {
             balanceSearch = con.prepareStatement(""
                     + "SELECT balance FROM transfers "
                     + "WHERE drug_id = ? "
-                    + "ORDER BY transfer_date DESC "
+                    + "ORDER BY id DESC "
                     + "LIMIT 1;");
 
             return true;
@@ -327,11 +344,90 @@ public class DatabaseConnection {
     }
 
     /**
-     * Adds a record of a drug transfer to the database.
-     */
-    public boolean addTransferEntry() {
+     * Adds a record of a supply to patient to the database. Returns
+     * true if no SQLException was encountered.
+     **/
+    public boolean addSupplyEntry(Transfer transfer) {
+        int transferDateIdx = 1;
+        int agentIdIdx = 2;
+        int drugIdIdx = 3;
+        int qtyInIdx = 4;
+        int qtyOutIdx = 5;
+        int balanceIdx = 6;
+        int prescriberIdIdx = 7;
+        int referenceIdx = 8;
+        int notesIdx = 9;
+        int pharmacistIdIdx = 10;
+        var date = Date.valueOf(LocalDate.now().toString());
+        int qtyIn = 0;
+        int qtyOut = 0;
+
+        if (transfer.getAgent() instanceof Supplier) {
+            qtyIn = transfer.getQty();
+        } else {
+            qtyOut = transfer.getQty();
+        }
+
         try {
-            transferInsert.execute();
+            supplyInsert.setDate(transferDateIdx, date);
+            supplyInsert.setInt(agentIdIdx, transfer.getAgent().getId());
+            supplyInsert.setInt(drugIdIdx, transfer.getDrug().getId());
+            supplyInsert.setInt(qtyInIdx, qtyIn);
+            supplyInsert.setInt(qtyOutIdx, qtyOut);
+            supplyInsert.setInt(balanceIdx, transfer.getBalanceAfter());
+            supplyInsert.setInt(
+                    prescriberIdIdx,
+                    transfer.getPrescriber().getId());
+            supplyInsert.setString(referenceIdx, transfer.getReference());
+            supplyInsert.setString(notesIdx, transfer.getNotes());
+            supplyInsert.setInt(
+                    pharmacistIdIdx,
+                    transfer.getPharmacist().getId());
+            supplyInsert.execute();
+
+            return true;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Adds a record of a receive from supplier to the database.
+     * Returns true if no SQLException was encountered.
+     **/
+    public boolean addReceiveEntry(Transfer transfer) {
+        int transferDateIdx = 1;
+        int agentIdIdx = 2;
+        int drugIdIdx = 3;
+        int qtyInIdx = 4;
+        int qtyOutIdx = 5;
+        int balanceIdx = 6;
+        int referenceIdx = 7;
+        int notesIdx = 8;
+        int pharmacistIdIdx = 9;
+        var date = Date.valueOf(LocalDate.now().toString());
+        int qtyIn = 0;
+        int qtyOut = 0;
+
+        if (transfer.getAgent() instanceof Supplier) {
+            qtyIn = transfer.getQty();
+        } else {
+            qtyOut = transfer.getQty();
+        }
+
+        try {
+            receiveInsert.setDate(transferDateIdx, date);
+            receiveInsert.setInt(agentIdIdx, transfer.getAgent().getId());
+            receiveInsert.setInt(drugIdIdx, transfer.getDrug().getId());
+            receiveInsert.setInt(qtyInIdx, qtyIn);
+            receiveInsert.setInt(qtyOutIdx, qtyOut);
+            receiveInsert.setInt(balanceIdx, transfer.getBalanceAfter());
+            receiveInsert.setString(referenceIdx, transfer.getReference());
+            receiveInsert.setString(notesIdx, transfer.getNotes());
+            receiveInsert.setInt(
+                    pharmacistIdIdx,
+                    transfer.getPharmacist().getId());
+            receiveInsert.execute();
 
             return true;
         } catch (SQLException e) {
@@ -534,16 +630,15 @@ public class DatabaseConnection {
         }
     }
 
-
     /**
-     * Returns a list of Pharmacists matching the searchTerm.
+     * Returns a list of Patients matching the searchTerm.
      * Returns null if there was an SQLException.
      */
     public List<Patient> getPatientsList(String searchTerm) {
         int idIdx = 1;
         int firstNameIdx = 3;
         int lastNameIdx = 4;
-        int address = 6;
+        int addressIdx = 6;
 
         ResultSet results = getPatients(searchTerm);
         List<Patient> resultsAsList = new ArrayList<>();
@@ -557,8 +652,37 @@ public class DatabaseConnection {
                         results.getInt(idIdx),
                         results.getString(firstNameIdx),
                         results.getString(lastNameIdx),
-                        results.getString(address));
+                        results.getString(addressIdx));
                 resultsAsList.add(patient);
+            }
+            return resultsAsList;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns a list of Suppliers matching the searchTerm.
+     * Returns null if there was an SQLException.
+     */
+    public List<Supplier> getSuppliersList(String searchTerm) {
+        int idIdx = 1;
+        int nameIdx = 5;
+        int addressIdx = 6;
+
+        ResultSet results = getSuppliers(searchTerm);
+        List<Supplier> resultsAsList = new ArrayList<>();
+
+        if (results == null) {
+            return null;
+        }
+        try {
+            while (results.next()) {
+                var supplier = new Supplier(
+                        results.getInt(idIdx),
+                        results.getString(nameIdx),
+                        results.getString(addressIdx));
+                resultsAsList.add(supplier);
             }
             return resultsAsList;
         } catch (SQLException e) {
@@ -599,11 +723,11 @@ public class DatabaseConnection {
 
     /**
      * Returns current balance of a Drug with its primary key
-     * as the parameter. Returns -1 if there is no record
-     * or if there was an SQLException.
+     * as the parameter. Returns 0 if there is no record, and
+     * returns -1 if there was an SQLException.
      */
     public int getBalance(int drugId) {
-        int balance = -1;
+        int balance = 0;
 
         try {
             balanceSearch.setInt(1, drugId);
@@ -617,7 +741,7 @@ public class DatabaseConnection {
 
             return balance;
         } catch (SQLException e) {
-            return balance;
-        } 
+            return -1;
+        }
     }
 }

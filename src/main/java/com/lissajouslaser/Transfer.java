@@ -1,98 +1,68 @@
 package com.lissajouslaser;
 
-import java.time.LocalDateTime;
-
 /**
  * Defines a record of transfer of a drug to or from the
  * pharmacy.
+ * Contains instance variables to carry data to and from a SQL
+ * database, and methods for input validation. Static input
+ * validation methods allow you to test indivdual inputs key by
+ * key in a GUI. validateSupplyToPatient() and
+ * validateReceiveFromSupplier tests the instance variables all at
+ * once, and provides addional tests that cannot be performed on
+ * incomplete inputs.
  */
 public class Transfer {
     static final int REFERENCE_MAX_LENGTH = 16;
     static final int NOTES_MAX_LENGTH = 64;
-    static final int THIRD_INDEX = 3;
-    static final int FOURTH_INDEX = 4;
-    static final int FIFTH_INDEX = 5;
-    static final int SIXTH_INDEX = 6;
-    static final int SEVENTH_INDEX = 7;
-    static final int EIGHTH_INDEX = 8;
-    static final int NINTH_INDEX = 9;
-    static final int TENTH_INDEX = 10;
-    private LocalDateTime transferDate;
-    private int agentId;
-    private boolean isSupplier;
-    private int drugId;
-    /*
-     * qtyEntered is the amount being transferred, qtyIn, qtyOut
-     * and balance are calculated once agent is found out the be a
-     * supplier (qtyIn) or patient (qtyOut).
-     */
-    private int qtyEntered;
-    private int qtyIn;
-    private int qtyOut;
-    private int oldBalance;
-    private int newBalance;
-    private int prescriberId;
-    private int pharmacistId;
-    private String reference;
-    private String notes; // Optional notes of transfer.
+    private IAgent agent;
+    private Drug drug;
+    private String balanceBefore; // Balance before transfer.
+    private String qty;           // Quantity transferred.
+    private Prescriber prescriber;
+    private String reference;     // Script number or invoice.
+    private String notes;         // Optional notes.
+    private Pharmacist pharmacist;
 
     /**
      * Constructor.
      */
     public Transfer(
-            LocalDateTime transferDate,
-            int agentId,
-            boolean isSupplier,
-            int drugId,
-            int qtyEntered,
-            int oldBalance,
-            int prescriberId,
-            int pharmacistId,
+            IAgent agent,
+            Drug drug,
+            String balanceBefore,
+            String qty,
+            Prescriber prescriber,
             String reference,
-            String notes) {
-        this.transferDate = transferDate;
-        this.agentId = agentId;
-        this.isSupplier = isSupplier;
-        this.drugId = drugId;
-        this.qtyEntered = qtyEntered;
-        this.oldBalance = oldBalance;
-        this.prescriberId = prescriberId;
-        this.pharmacistId = pharmacistId;
-        this.reference = reference.toLowerCase();
+            String notes,
+            Pharmacist pharmacist) {
+        this.agent = agent;
+        this.drug = drug;
+        this.balanceBefore = balanceBefore;
+        this.qty = qty;
+        this.prescriber = prescriber;
+        this.reference = reference;
         this.notes = notes;
-        calculateTransfer();
+        this.pharmacist = pharmacist;
     }
 
-    public LocalDateTime getTransferDate() {
-        return transferDate;
+    public IAgent getAgent() {
+        return agent;
     }
 
-    public int getAgentId() {
-        return agentId;
+    public Drug getDrug() {
+        return drug;
     }
 
-    public int getDrugId() {
-        return drugId;
+    public int getBalanceBefore() {
+        return Integer.valueOf(balanceBefore);
     }
 
-    public int getQtyIn() {
-        return qtyIn;
+    public int getQty() {
+        return Integer.valueOf(qty);
     }
 
-    public int getQtyOut() {
-        return qtyOut;
-    }
-
-    public int getBalance() {
-        return oldBalance;
-    }
-
-    public int getPrescriberId() {
-        return prescriberId;
-    }
-
-    public int getPharmacistId() {
-        return pharmacistId;
+    public Prescriber getPrescriber() {
+        return prescriber;
     }
 
     public String getReference() {
@@ -103,8 +73,24 @@ public class Transfer {
         return notes;
     }
 
+    public Pharmacist getPharmacist() {
+        return pharmacist;
+    }
+
     /**
-     * Validates the fields for adding a transfer to
+     * Returns the new balance of the drug after the
+     * transfer.
+     */
+    public int getBalanceAfter() {
+        if (agent instanceof Patient) {
+            return getBalanceBefore() - getQty();
+        } else {
+            return getBalanceBefore() + getQty();
+        }
+    }
+
+    /**
+     * Validates the fields for adding a supply to a patient
      * the database.
      * drugId, agentId, prescriberId and pharmacistId are
      * assumed to be correct, because they should have been
@@ -112,83 +98,141 @@ public class Transfer {
      * 
      * @return An array of error messages, with each index
      *         representing a error message for a given field.
-     *         0 - balance <- not a field, but derived from one.
-     *         1 - reference
-     *         2 - notes
+     *         0 - agent
+     *         1 - drug
+     *         2 - quantity transferred
+     *         3 - presriber
+     *         4 - reference: script number or supplier receipt
+     *         5 - notes
+     *         6 - pharmacist
      *         If there is no error for an associated field, the
      *         String at the associated index is null;
      */
-    public String[] validate() {
-        String[] errors = new String[3];
+    public String[] validateSupplyToPatient() {
+        String[] errors = new String[7];
 
-        errors[0] = validateBalance();
-        errors[1] = validateReference();
-        errors[2] = validateNotes();
+        errors[0] = validateForeignKey(agent);
+        errors[1] = validateForeignKey(drug);
+        errors[2] = validateQty();
+        errors[3] = validateForeignKey(prescriber);
+        errors[4] = validateReference();
+        errors[5] = validateNotes();
+        errors[6] = validateForeignKey(pharmacist);
+        return errors;
+    }
+
+    /**
+     * Validates the fields for receving an order from a
+     * supplier the database.
+     * drugId, agentId, prescriberId and pharmacistId are
+     * assumed to be correct, because they should have been
+     * searched using the database tables.
+     * 
+     * @return An array of error messages, with each index
+     *         representing a error message for a given field.
+     *         0 - agent
+     *         1 - drug
+     *         2 - quantity transferred
+     *         3 - presriber
+     *         4 - reference: script number or supplier receipt
+     *         5 - notes
+     *         6 - pharmacist
+     *         If there is no error for an associated field, the
+     *         String at the associated index is null;
+     */
+    public String[] validateReceiveFromSupplier() {
+        String[] errors = new String[7];
+
+        errors[0] = validateForeignKey(agent);
+        errors[1] = validateForeignKey(drug);
+        errors[2] = validateQty();
+        // Index three not used.
+        errors[4] = validateReference();
+        errors[5] = validateNotes();
+        errors[6] = validateForeignKey(pharmacist);
         return errors;
     }
 
     /*
-     * Balance of the medication in the pharmacy - cannot
-     * be negative.
+     * The parameter is a IAgent, Drug, Prescriber or
+     * Pharmacist.
      */
-    private String validateBalance() {
-        if (newBalance < 0) {
-            return "The resulting balance cannot be negative";
+    private String validateForeignKey(Object obj) {
+        if (obj == null) {
+            return "Must select";
         }
         return null;
     }
 
-    /**
-     * Validates partial input of quantity being supplied or received,
-     * returns a String with a description of the first reason why
-     * address is invalid. Otherwise returns null.
-     **/
-    public static String validateQty(String qty) {
+    private String validateQty() {
         if (qty.isEmpty()) {
             return "Must fill in";
         }
-        if (!qty.matches("[0-9]+")) {
+        if (balanceBefore.isEmpty()) {
+            // Assumes previous balance obtained by selecting a drug.
+            return "Must select drug";
+        }
+        if ("0".equals(qty)) {
+            return "Can't be zero";
+        }
+        if (getBalanceAfter() < 0) {
+            return "Resulting balance can't be negative";
+        }
+        return validateQty(this.qty);
+    }
+
+    /**
+     * Validates quantity to transfer as input text, returns a String
+     * with a description of the first reason why address is invalid.
+     * Otherwise returns null.
+     **/
+    public static String validateQty(String qty) {
+        if (!qty.isEmpty()
+                && !qty.matches("[0-9]+")) {
             return "Must be in digits";
         }
         return null;
+
     }
 
-    /*
+    private String validateReference() {
+        return validateReference(this.reference);
+    }
+
+    /**
      * Validates a transfer reference, which will be an invoice
      * number for supplier orders, or a dispensing number for
-     * medication supply to patients.
-     */
-    private String validateReference() {
-        if (!reference.matches("[A-Z0-9 ]+")) {
-            return "Reference must be numbers, alphabetic letters, or spaces";
+     * medication supply to patients. Returns a String with a
+     * description of the first reason why firstName is invalid.
+     * Otherwise returns null. Allowed to be empty.
+     **/
+    public static String validateReference(String reference) {
+        if (!reference.isEmpty()
+                && !reference.matches("[A-Z0-9]+")) {
+            return "Must be numbers or letters";
         }
         if (reference.length() > REFERENCE_MAX_LENGTH) {
-            return "Reference must be " + REFERENCE_MAX_LENGTH
+            return "Must be " + REFERENCE_MAX_LENGTH
                     + " characters or less";
         }
         return null;
     }
 
-    /*
-     * No character requirements for notes.
-     */
     private String validateNotes() {
+        return validateNotes(this.notes);
+    }
+
+    /**
+     * Validates notes, No character requirements for notes. Returns a
+     * String with a description of the first reason why firstName is
+     * invalid. Otherwise returns null.
+     **/
+    public static String validateNotes(String notes) {
         if (notes.length() > NOTES_MAX_LENGTH) {
             return "Notes must be " + NOTES_MAX_LENGTH
                     + " characters or less";
         }
         return null;
-    }
-
-    private void calculateTransfer() {
-        if (isSupplier) {
-            qtyIn = qtyEntered;
-            qtyOut = 0;
-        } else {
-            qtyOut = qtyEntered;
-            qtyIn = 0;
-        }
-        newBalance = oldBalance + qtyIn - qtyOut;
     }
 
 }

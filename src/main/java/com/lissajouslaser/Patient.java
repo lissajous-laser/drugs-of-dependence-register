@@ -2,9 +2,14 @@ package com.lissajouslaser;
 
 /**
  * Defines a patient.
+ * Contains instance variables to carry data to and from a SQL
+ * database, and methods for input validation. Static input
+ * validation methods allow you to test indivdual inputs key by
+ * key in a GUI. validate() tests the instance variables all at
+ * once, and provides addional tests that cannot be performed on
+ * incomplete inputs.
  */
 public class Patient extends Person implements IAgent {
-    static final int MAX_ADDRESS_LENGTH = 64;
     private int id;
     private String address;
 
@@ -49,35 +54,11 @@ public class Patient extends Person implements IAgent {
         return errors;
     }
 
-    private String validateFirstName() {
-        return validateFirstName(getFirstName());
-    }
-
-    private String validateLastName() {
-        return validateLastName(getLastName());
-    }
-
     private String validateAddress() {
-        return validateAddress(this.address);
-    }
-
-    /**
-     * Validates partial input of address, returns a String with a
-     * description of the first reason why address is invalid.
-     * Otherwise returns null.
-     **/
-    public static String validateAddress(String address) {
         if (address.isEmpty()) {
             return "Must fill in";
         }
-        if (address.length() > MAX_ADDRESS_LENGTH) {
-            return "Must be " + MAX_ADDRESS_LENGTH
-                    + " characters or less";
-        }
-        if (!address.matches("[A-Z0-9\\-/ ,]+")) {
-            return "Must be letters, numbers, spaces, or: /, -";
-        }
-        return null;
+        return IAgent.validateAddress(this.address);
     }
 
     @Override
@@ -90,6 +71,7 @@ public class Patient extends Person implements IAgent {
         return address;
     }
 
+    @Override
     public int getId() {
         return id;
     }
