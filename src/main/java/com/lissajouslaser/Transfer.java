@@ -12,9 +12,10 @@ package com.lissajouslaser;
  * incomplete inputs.
  */
 public class Transfer {
+    static final int QTY_MAX_LENGTH = 5;
     static final int REFERENCE_MAX_LENGTH = 16;
-    static final int NOTES_MAX_LENGTH = 64;
-    private IAgent agent;
+    static final int NOTES_MAX_LENGTH = 32;
+    private Agent agent;
     private Drug drug;
     private String balanceBefore; // Balance before transfer.
     private String qty;           // Quantity transferred.
@@ -27,7 +28,7 @@ public class Transfer {
      * Constructor.
      */
     public Transfer(
-            IAgent agent,
+            Agent agent,
             Drug drug,
             String balanceBefore,
             String qty,
@@ -45,7 +46,7 @@ public class Transfer {
         this.pharmacist = pharmacist;
     }
 
-    public IAgent getAgent() {
+    public Agent getAgent() {
         return agent;
     }
 
@@ -191,8 +192,11 @@ public class Transfer {
                 && !qty.matches("[0-9]+")) {
             return "Must be in digits";
         }
+        if (qty.length() > 5) {
+            return "Must be " + QTY_MAX_LENGTH
+                    + " digits or less";
+        }
         return null;
-
     }
 
     private String validateReference() {

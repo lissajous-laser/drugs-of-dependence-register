@@ -1,8 +1,29 @@
 package com.lissajouslaser;
 
-import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+
+import com.lissajouslaser.control.AddressArea;
+import com.lissajouslaser.control.DoseFormField;
+import com.lissajouslaser.control.DrugField;
+import com.lissajouslaser.control.DrugNameField;
+import com.lissajouslaser.control.FirstNameField;
+import com.lissajouslaser.control.LastNameField;
+import com.lissajouslaser.control.NotesField;
+import com.lissajouslaser.control.PatientField;
+import com.lissajouslaser.control.PharmacistField;
+import com.lissajouslaser.control.PrescriberField;
+import com.lissajouslaser.control.PrescriberNumField;
+import com.lissajouslaser.control.QtyField;
+import com.lissajouslaser.control.ReferenceField;
+import com.lissajouslaser.control.RegistrationField;
+import com.lissajouslaser.control.SearchField;
+import com.lissajouslaser.control.StrengthField;
+import com.lissajouslaser.control.SupplierField;
+import com.lissajouslaser.control.SupplierNameField;
+import com.lissajouslaser.control.ValidatableField;
+
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -10,11 +31,10 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
@@ -36,7 +56,7 @@ public class MainApp extends Application {
     static final int TEXT_FIELD_WIDTH = 300;
     static final int TEXT_AREA_HEIGHT = 60;
     static final int TEXT_FIELD_SEARCH_WIDTH = 70;
-    static final int NUM_FIELD_WIDTH = 55;
+    static final int NUM_FIELD_WIDTH = 60;
     static final int ERROR_FONT_SIZE = 10;
     static final int LIST_VIEW_WIDTH = 400;
     static final int LIST_VIEW_HEIGHT = 300;
@@ -45,8 +65,12 @@ public class MainApp extends Application {
     DatabaseConnection db;
 
     @Override
-    public void start(@SuppressWarnings("exports") Stage s) throws IOException {
-        db = new DatabaseConnection();
+    public void start(Stage s) {
+        try {
+            db = new DatabaseConnection();
+        } catch (SQLException e) {
+            openSqlErrorWindow("could not start database.");
+        }
 
         final int mainWindowWidth = 600;
         final int mainWindowHeight = 350;
@@ -162,33 +186,27 @@ public class MainApp extends Application {
 
         // First row of scene elements.
         var namePrompt = new Text("Name");
-        var nameField = new TextField();
+        var nameField = new DrugNameField();
         nameField.setMaxWidth(TEXT_FIELD_WIDTH);
         var nameInvalid = new Text();
         nameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        gridPane.add(namePrompt, 0, 0);
-        gridPane.add(nameField, 1, 0);
-        gridPane.add(nameInvalid, 2, 0);
+        addToGrid(gridPane, namePrompt, nameField, nameInvalid);
 
         // Second row of scene elements.
         var strengthPrompt = new Text("Strength");
-        var strengthField = new TextField();
+        var strengthField = new StrengthField();
         strengthField.setMaxWidth(TEXT_FIELD_WIDTH);
         var strengthInvalid = new Text();
         strengthInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        gridPane.add(strengthPrompt, 0, 1);
-        gridPane.add(strengthField, 1, 1);
-        gridPane.add(strengthInvalid, 2, 1);
+        addToGrid(gridPane, strengthPrompt, strengthField, strengthInvalid);
 
         // Third row of scene elements.
         var doseFormPrompt = new Text("Form");
-        var doseFormField = new TextField();
+        var doseFormField = new DoseFormField();
         doseFormField.setMaxWidth(TEXT_FIELD_WIDTH);
         var doseFormInvalid = new Text();
         doseFormInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        gridPane.add(doseFormPrompt, 0, 2);
-        gridPane.add(doseFormField, 1, 2);
-        gridPane.add(doseFormInvalid, 2, 2);
+        addToGrid(gridPane, doseFormPrompt, doseFormField, doseFormInvalid);
 
         // Buttons.
         var ok = new Button("OK");
@@ -196,59 +214,14 @@ public class MainApp extends Application {
         FlowPane buttons = new FlowPane();
         buttons.setHgap(GAP_SPACE);
         buttons.getChildren().addAll(ok, cancel);
-        gridPane.add(buttons, 1, 4);
+        addToGrid(gridPane, null, buttons);
 
         // Event handlers.
-        nameField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                String newValueUpperCase = newValue.toUpperCase();
-                String error = Drug.validateName(newValueUpperCase);
+        constrainInput(nameField);
 
-                if (error == null) {
-                    nameField.setText(newValueUpperCase);
-                } else {
-                    nameField.setText(oldValue);
-                }
-            }
-        });
+        constrainInput(strengthField);
 
-        strengthField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                String newValueUpperCase = newValue.toUpperCase();
-                String error = Drug.validateStrength(newValueUpperCase);
-
-                if (error == null) {
-                    strengthField.setText(newValueUpperCase);
-                } else {
-                    strengthField.setText(oldValue);
-                }
-            }
-        });
-
-        doseFormField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                String newValueUpperCase = newValue.toUpperCase();
-                String error = Drug.validateDoseForm(newValueUpperCase);
-
-                if (error == null) {
-                    doseFormField.setText(newValueUpperCase);
-                } else {
-                    doseFormField.setText(oldValue);
-                }
-            }
-        });
+        constrainInput(doseFormField);
 
         ok.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -265,11 +238,12 @@ public class MainApp extends Application {
                         .map(str -> str == null)
                         .reduce(true, (x, y) -> x && y);
                 if (isNoErrors) {
-                    if (db.addDrug(drug)) {
-                        stage.close();
-                    } else {
+                    try {
+                        db.addDrug(drug);
+                    } catch (SQLException e) {
                         openSqlErrorWindow("the entry was not completed.");
                     }
+                    stage.close();
                 } else {
                     nameInvalid.setText(errors[0]);
                     strengthInvalid.setText(errors[1]);
@@ -301,35 +275,29 @@ public class MainApp extends Application {
 
         // First row of scene elements.
         var firstNamePrompt = new Text("First name");
-        var firstNameField = new TextField();
+        var firstNameField = new FirstNameField();
         firstNameField.setMaxWidth(TEXT_FIELD_WIDTH);
         var firstNameInvalid = new Text();
         firstNameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        gridPane.add(firstNamePrompt, 0, 0);
-        gridPane.add(firstNameField, 1, 0);
-        gridPane.add(firstNameInvalid, 2, 0);
+        addToGrid(gridPane, firstNamePrompt, firstNameField, firstNameInvalid);
 
         // Second row of scene elements.
         var lastNamePrompt = new Text("Last name");
-        var lastNameField = new TextField();
+        var lastNameField = new LastNameField();
         lastNameField.setMaxWidth(TEXT_FIELD_WIDTH);
         var lastNameInvalid = new Text();
         lastNameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        gridPane.add(lastNamePrompt, 0, 1);
-        gridPane.add(lastNameField, 1, 1);
-        gridPane.add(lastNameInvalid, 2, 1);
+        addToGrid(gridPane, lastNamePrompt, lastNameField, lastNameInvalid);
 
         // Third Row of scene elements.
         var addressPrompt = new Text("Address");
-        var addressField = new TextArea();
+        var addressField = new AddressArea();
         addressField.setMaxWidth(TEXT_FIELD_WIDTH);
         addressField.setMaxHeight(TEXT_AREA_HEIGHT);
         addressField.setWrapText(true);
         var addressInvalid = new Text();
         addressInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        gridPane.add(addressPrompt, 0, 2);
-        gridPane.add(addressField, 1, 2);
-        gridPane.add(addressInvalid, 2, 2);
+        addToGrid(gridPane, addressPrompt, addressField, addressInvalid);
 
         // Buttons.
         var ok = new Button("OK");
@@ -337,16 +305,15 @@ public class MainApp extends Application {
         FlowPane buttons = new FlowPane();
         buttons.setHgap(GAP_SPACE);
         buttons.getChildren().addAll(ok, cancel);
-        gridPane.add(buttons, 1, 4);
+        addToGrid(gridPane, null, buttons);
 
         // Event handlers.
-        constrainInputFirstNameField(firstNameField);
+        constrainInput(firstNameField);
 
-        constrainInputLastNameField(lastNameField);
+        constrainInput(lastNameField);
 
-        constrainInputAddressField(addressField);
+        constrainInput(addressField);
 
-        // Final input validation then send to database.
         ok.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -362,12 +329,12 @@ public class MainApp extends Application {
                         .map(str -> str == null)
                         .reduce(true, (x, y) -> x && y);
                 if (isNoErrors) {
-                    if (db.addPatient(patient)) {
-                        stage.close();
-                    } else {
-                        openSqlErrorWindow("the entry was not completed.");
+                    try {
+                        db.addPatient(patient);
+                    } catch (SQLException e) {
+                        openSqlErrorWindow("the entry was not completed.");                       
                     }
-                    ;
+                    stage.close();
                 } else {
                     firstNameInvalid.setText(errors[0]);
                     lastNameInvalid.setText(errors[1]);
@@ -399,33 +366,31 @@ public class MainApp extends Application {
 
         // First row of scene elements.
         var firstNamePrompt = new Text("First name");
-        var firstNameField = new TextField();
+        var firstNameField = new FirstNameField();
         firstNameField.setMaxWidth(TEXT_FIELD_WIDTH);
         var firstNameInvalid = new Text();
         firstNameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        gridPane.add(firstNamePrompt, 0, 0);
-        gridPane.add(firstNameField, 1, 0);
-        gridPane.add(firstNameInvalid, 2, 0);
+        addToGrid(gridPane, firstNamePrompt, firstNameField, firstNameInvalid);
 
         // Second row of scene elements.
         var lastNamePrompt = new Text("Last name");
-        var lastNameField = new TextField();
+        var lastNameField = new LastNameField();
         lastNameField.setMaxWidth(TEXT_FIELD_WIDTH);
         var lastNameInvalid = new Text();
         lastNameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        gridPane.add(lastNamePrompt, 0, 1);
-        gridPane.add(lastNameField, 1, 1);
-        gridPane.add(lastNameInvalid, 2, 1);
+        addToGrid(gridPane, lastNamePrompt, lastNameField, lastNameInvalid);
 
         // Third Row of scene elements.
         var registrationPrompt = new Text("Registration number");
-        var registrationField = new TextField();
+        var registrationField = new RegistrationField();
         registrationField.setMaxWidth(TEXT_FIELD_WIDTH);
         var registrationInvalid = new Text();
         registrationInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        gridPane.add(registrationPrompt, 0, 2);
-        gridPane.add(registrationField, 1, 2);
-        gridPane.add(registrationInvalid, 2, 2);
+        addToGrid(
+                gridPane,
+                registrationPrompt,
+                registrationField,
+                registrationInvalid);
 
         // Buttons.
         var ok = new Button("OK");
@@ -433,29 +398,14 @@ public class MainApp extends Application {
         FlowPane buttons = new FlowPane();
         buttons.setHgap(GAP_SPACE);
         buttons.getChildren().addAll(ok, cancel);
-        gridPane.add(buttons, 1, 4);
+        addToGrid(gridPane, null, buttons);
 
         // EventHandlers.
-        constrainInputFirstNameField(firstNameField);
+        constrainInput(firstNameField);
 
-        constrainInputLastNameField(lastNameField);
+        constrainInput(lastNameField);
 
-        registrationField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                String newValueUpperCase = newValue.toUpperCase();
-                String error = Pharmacist.validateRegistration(newValueUpperCase);
-
-                if (error == null) {
-                    registrationField.setText(newValueUpperCase);
-                } else {
-                    registrationField.setText(oldValue);
-                }
-            }
-        });
+        constrainInput(registrationField);
 
         ok.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -472,12 +422,12 @@ public class MainApp extends Application {
                         .map(str -> str == null)
                         .reduce(true, (x, y) -> x && y);
                 if (isNoErrors) {
-                    if (db.addPharmacist(pharmacist)) {
-                        stage.close();
-                    } else {
+                    try {
+                        db.addPharmacist(pharmacist);
+                    } catch (SQLException e) {
                         openSqlErrorWindow("the entry was not completed.");
                     }
-                    ;
+                    stage.close();
                 } else {
                     firstNameInvalid.setText(errors[0]);
                     lastNameInvalid.setText(errors[1]);
@@ -509,33 +459,31 @@ public class MainApp extends Application {
 
         // First row of scene elements.
         var firstNamePrompt = new Text("First name");
-        var firstNameField = new TextField();
+        var firstNameField = new FirstNameField();
         firstNameField.setMaxWidth(TEXT_FIELD_WIDTH);
         var firstNameInvalid = new Text();
         firstNameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        gridPane.add(firstNamePrompt, 0, 0);
-        gridPane.add(firstNameField, 1, 0);
-        gridPane.add(firstNameInvalid, 2, 0);
+        addToGrid(gridPane, firstNamePrompt, firstNameField, firstNameInvalid);
 
         // Second row of scene elements.
         var lastNamePrompt = new Text("Last name");
-        var lastNameField = new TextField();
+        var lastNameField = new LastNameField();
         lastNameField.setMaxWidth(TEXT_FIELD_WIDTH);
         var lastNameInvalid = new Text();
         lastNameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        gridPane.add(lastNamePrompt, 0, 1);
-        gridPane.add(lastNameField, 1, 1);
-        gridPane.add(lastNameInvalid, 2, 1);
+        addToGrid(gridPane, lastNamePrompt, lastNameField, lastNameInvalid);
 
         // Third row of scene elements.
         var prescriberNumPrompt = new Text("Prescriber number");
-        var prescriberNumField = new TextField();
+        var prescriberNumField = new PrescriberNumField();
         prescriberNumField.setMaxWidth(TEXT_FIELD_WIDTH);
         var prescriberNumInvalid = new Text();
         prescriberNumInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        gridPane.add(prescriberNumPrompt, 0, 2);
-        gridPane.add(prescriberNumField, 1, 2);
-        gridPane.add(prescriberNumInvalid, 2, 2);
+        addToGrid(
+                gridPane,
+                prescriberNumPrompt,
+                prescriberNumField,
+                prescriberNumInvalid);
 
         // Buttons.
         var ok = new Button("OK");
@@ -543,29 +491,14 @@ public class MainApp extends Application {
         FlowPane buttons = new FlowPane();
         buttons.setHgap(GAP_SPACE);
         buttons.getChildren().addAll(ok, cancel);
-        gridPane.add(buttons, 1, 4);
+        addToGrid(gridPane, null, buttons);
 
         // Event handlers.
-        constrainInputFirstNameField(firstNameField);
+        constrainInput(firstNameField);
 
-        constrainInputLastNameField(lastNameField);
+        constrainInput(lastNameField);
 
-        prescriberNumField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                String newValueUpperCase = newValue.toUpperCase();
-                String error = Prescriber.validatePrescriberNumber(newValueUpperCase);
-
-                if (error == null) {
-                    prescriberNumField.setText(newValueUpperCase);
-                } else {
-                    prescriberNumField.setText(oldValue);
-                }
-            }
-        });
+        constrainInput(prescriberNumField);
 
         ok.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -582,11 +515,12 @@ public class MainApp extends Application {
                         .map(str -> str == null)
                         .reduce(true, (x, y) -> x && y);
                 if (isNoErrors) {
-                    if (db.addPrescriber(prescriber)) {
-                        stage.close();
-                    } else {
+                    try {
+                        db.addPrescriber(prescriber);
+                    } catch (SQLException e) {
                         openSqlErrorWindow("the entry was not completed.");
                     }
+                    stage.close();
                 } else {
                     // Create messages for invalid field entries.
                     firstNameInvalid.setText(errors[0]);
@@ -618,26 +552,26 @@ public class MainApp extends Application {
                 gridPane, SUBWINDOW_A_WIDTH, SUBWINDOW_A_HEIGHT));
 
         // First row of scene elements.
-        var companyNamePrompt = new Text("Company name");
-        var companyNameField = new TextField();
-        companyNameField.setMaxWidth(TEXT_FIELD_WIDTH);
-        var companyNameInvalid = new Text();
-        companyNameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        gridPane.add(companyNamePrompt, 0, 0);
-        gridPane.add(companyNameField, 1, 0);
-        gridPane.add(companyNameInvalid, 2, 0);
+        var supplierNamePrompt = new Text("Supplier name");
+        var supplierNameField = new SupplierNameField();
+        supplierNameField.setMaxWidth(TEXT_FIELD_WIDTH);
+        var supplierNameInvalid = new Text();
+        supplierNameInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        addToGrid(
+                gridPane,
+                supplierNamePrompt,
+                supplierNameField,
+                supplierNameInvalid);
 
         // Second Row of scene elements.
         var addressPrompt = new Text("Address");
-        var addressField = new TextArea();
+        var addressField = new AddressArea();
         addressField.setMaxWidth(TEXT_FIELD_WIDTH);
         addressField.setMaxHeight(TEXT_AREA_HEIGHT);
         addressField.setWrapText(true);
         var addressInvalid = new Text();
         addressInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        gridPane.add(addressPrompt, 0, 1);
-        gridPane.add(addressField, 1, 1);
-        gridPane.add(addressInvalid, 2, 1);
+        addToGrid(gridPane, addressPrompt, addressField, addressInvalid);
 
         // Buttons.
         var ok = new Button("OK");
@@ -645,34 +579,18 @@ public class MainApp extends Application {
         FlowPane buttons = new FlowPane();
         buttons.setHgap(GAP_SPACE);
         buttons.getChildren().addAll(ok, cancel);
-        gridPane.add(buttons, 1, 4);
+        addToGrid(gridPane, null, buttons);
 
         // Event Handlers.
-        companyNameField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                String newValueUpperCase = newValue.toUpperCase();
-                // validateFirstName() and validateLastName() work the same.
-                String error = Supplier.validateName(newValueUpperCase);
+        constrainInput(supplierNameField);
 
-                if (error == null) {
-                    companyNameField.setText(newValueUpperCase);
-                } else {
-                    companyNameField.setText(oldValue);
-                }
-            }
-        });
-
-        constrainInputAddressField(addressField);
+        constrainInput(addressField);
 
         ok.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 var supplier = new Supplier(
-                        companyNameField.getText(),
+                        supplierNameField.getText(),
                         addressField.getText());
 
                 String[] errors = supplier.validate();
@@ -682,13 +600,14 @@ public class MainApp extends Application {
                         .map(str -> str == null)
                         .reduce(true, (x, y) -> x && y);
                 if (isNoErrors) {
-                    if (db.addSupplier(supplier)) {
-                        stage.close();
-                    } else {
+                    try {
+                        db.addSupplier(supplier);
+                    } catch (SQLException e) {
                         openSqlErrorWindow("the entry was not completed.");
                     }
+                    stage.close();
                 } else {
-                    companyNameInvalid.setText(errors[0]);
+                    supplierNameInvalid.setText(errors[0]);
                     addressInvalid.setText(errors[1]);
                 }
             }
@@ -717,82 +636,83 @@ public class MainApp extends Application {
 
         // First row of scene elements.
         var patientPrompt = new Text("Patient");
-        var patientField = new TextField();
+        var patientField = new PatientField();
         patientField.setMaxWidth(TEXT_FIELD_SEARCH_WIDTH);
         var patientComboBox = new ComboBox<Patient>();
         patientComboBox.setMinWidth(COMBO_BOX_MIN_WIDTH);
         var patientInvalid = new Text();
-        gridPane.add(patientPrompt, 0, 0);
-        gridPane.add(patientField, 1, 0);
-        gridPane.add(patientComboBox, 2, 0);
-        gridPane.add(patientInvalid, 3, 0);
+        addToGrid(
+            gridPane,
+            patientPrompt,
+            patientField,
+            patientComboBox,
+            patientInvalid);
+
 
         // Second row of scene elements.
         var drugPrompt = new Text("Drug");
-        var drugField = new TextField();
+        var drugField = new DrugField();
         drugField.setMaxWidth(TEXT_FIELD_SEARCH_WIDTH);
         var drugComboBox = new ComboBox<Drug>();
         drugComboBox.setMinWidth(COMBO_BOX_MIN_WIDTH);
         var drugInvalid = new Text();
-        gridPane.add(drugPrompt, 0, 1);
-        gridPane.add(drugField, 1, 1);
-        gridPane.add(drugComboBox, 2, 1);
-        gridPane.add(drugInvalid, 3, 1);
+        addToGrid(gridPane, drugPrompt, drugField, drugComboBox, drugInvalid);
 
         // Third row of scene elements.
         var balancePrompt = new Text("Balance");
         var balanceField = new Text();
-        gridPane.add(balancePrompt, 0, 2);
-        gridPane.add(balanceField, 2, 2);
+        addToGrid(gridPane, balancePrompt, null, balanceField);
 
         // Fourth row of scene elements.
         var qtyPrompt = new Text("Quantity");
-        var qtyField = new TextField("");
+        var qtyField = new QtyField();
         qtyField.setMaxWidth(NUM_FIELD_WIDTH);
         var qtyInvalid = new Text();
-        gridPane.add(qtyPrompt, 0, 3);
-        gridPane.add(qtyField, 2, 3);
-        gridPane.add(qtyInvalid, 3, 3);
+        addToGrid(gridPane, qtyPrompt, null, qtyField, qtyInvalid);
 
         // Fifth row of scene elements.
         var prescriberPrompt = new Text("Prescriber");
-        var prescriberField = new TextField();
+        var prescriberField = new PrescriberField();
         prescriberField.setMaxWidth(TEXT_FIELD_SEARCH_WIDTH);
         var prescriberComboBox = new ComboBox<Prescriber>();
         prescriberComboBox.setMinWidth(COMBO_BOX_MIN_WIDTH);
         var prescriberInvalid = new Text();
-        gridPane.add(prescriberPrompt, 0, 4);
-        gridPane.add(prescriberField, 1, 4);
-        gridPane.add(prescriberComboBox, 2, 4);
-        gridPane.add(prescriberInvalid, 3, 4);
+        addToGrid(
+                gridPane,
+                prescriberPrompt,
+                prescriberField,
+                prescriberComboBox,
+                prescriberInvalid);
 
         // Sixth row of scene elements.
         var pharmacistPrompt = new Text("Pharmacist");
-        var pharmacistField = new TextField();
+        var pharmacistField = new PharmacistField();
         pharmacistField.setMaxWidth(TEXT_FIELD_SEARCH_WIDTH);
         var pharmacistComboBox = new ComboBox<Pharmacist>();
         pharmacistComboBox.setMinWidth(COMBO_BOX_MIN_WIDTH);
         var pharmacistInvalid = new Text();
-        gridPane.add(pharmacistPrompt, 0, 5);
-        gridPane.add(pharmacistField, 1, 5);
-        gridPane.add(pharmacistComboBox, 2, 5);
-        gridPane.add(pharmacistInvalid, 3, 5);
+        addToGrid(
+                gridPane,
+                pharmacistPrompt,
+                pharmacistField,
+                pharmacistComboBox,
+                pharmacistInvalid);
 
         // Seventh row of scene elements.
         var scriptNumPrompt = new Text("Script Num");
-        var scriptNumField = new TextField();
+        var scriptNumField = new ReferenceField();
         var scriptNumInvalid = new Text();
-        gridPane.add(scriptNumPrompt, 0, 6);
-        gridPane.add(scriptNumField, 2, 6);
-        gridPane.add(scriptNumInvalid, 3, 6);
+        addToGrid(gridPane,
+                scriptNumPrompt,
+                null,
+                scriptNumField,
+                scriptNumInvalid);
 
         // Eighth row of scene elements.
         var notesPrompt = new Text("Notes");
-        var notesField = new TextField();
+        var notesField = new NotesField();
         var notesInvalid = new Text();
-        gridPane.add(notesPrompt, 0, 7);
-        gridPane.add(notesField, 2, 7);
-        gridPane.add(notesInvalid, 3, 7);
+        addToGrid(gridPane, notesPrompt, null, notesField, notesInvalid);
 
         // Buttons.
         var ok = new Button("OK");
@@ -800,127 +720,35 @@ public class MainApp extends Application {
         FlowPane buttons = new FlowPane();
         buttons.setHgap(GAP_SPACE);
         buttons.getChildren().addAll(ok, cancel);
-        gridPane.add(buttons, 2, 8);
+        addToGrid(gridPane, null, null, buttons);
 
         // Event handlers.
-        patientField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                patientField.setText(newValue.toUpperCase());
+        updateComboBox(patientField, patientComboBox);
 
-                List<Patient> list = db.getPatientsList(patientField.getText());
-                patientComboBox.setItems(FXCollections.observableArrayList(list));
+        updateComboBox(drugField, drugComboBox);
 
-                patientComboBox.show();
-            }
-        });
+        updateComboBox(prescriberField, prescriberComboBox);
 
-        drugField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                drugField.setText(newValue.toUpperCase());
+        updateComboBox(pharmacistField, pharmacistComboBox);
 
-                List<Drug> list = db.getDrugsList(drugField.getText());
-                drugComboBox.setItems(FXCollections.observableArrayList(list));
-
-                drugComboBox.show();
-            }
-        });
-
-        prescriberField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                prescriberField.setText(newValue.toUpperCase());
-
-                List<Prescriber> list = db.getPrescribersList(prescriberField.getText());
-                prescriberComboBox.setItems(FXCollections.observableArrayList(list));
-
-                prescriberComboBox.show();
-            }
-        });
-
-        pharmacistField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                pharmacistField.setText(newValue.toUpperCase());
-
-                List<Pharmacist> list = db.getPharmacistsList(pharmacistField.getText());
-                pharmacistComboBox.setItems(FXCollections.observableArrayList(list));
-
-                pharmacistComboBox.show();
-            }
-        });
-
-        drugComboBox.setOnKeyReleased(event -> {
+        drugComboBox.setOnAction(event -> {
             Drug selectedDrug = drugComboBox.getValue();
 
-            if (selectedDrug != null) {
-                balanceField.setText(String.valueOf(db.getBalance(selectedDrug.getId())));
-            }
-            // System.out.println(drugComboBox.getValue());
-            System.out.println(drugComboBox.getSelectionModel().getSelectedIndex());
-        });
-
-        qtyField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                String error = Transfer.validateQty(newValue);
-
-                if (error == null) {
-                    qtyField.setText(newValue);
-                } else {
-                    qtyField.setText(oldValue);
+            try {
+                if (selectedDrug != null) {
+                    balanceField.setText(String.valueOf(
+                            db.getBalance(selectedDrug.getId())));
                 }
+            } catch (SQLException e) {
+                openSqlErrorWindow("data could not be retrieved.");
             }
         });
 
-        scriptNumField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                String newValueUpperCase = newValue.toUpperCase();
-                String error = Transfer.validateReference(newValueUpperCase);
+        constrainInput(qtyField);
 
-                if (error == null) {
-                    scriptNumField.setText(newValueUpperCase);
-                } else {
-                    scriptNumField.setText(oldValue);
-                }
-            }
-        });
+        constrainInput(scriptNumField);
 
-        notesField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                String error = Transfer.validateNotes(newValue);
-
-                if (error == null) {
-                    notesField.setText(newValue);
-                } else {
-                    notesField.setText(oldValue);
-                }
-            }
-        });
+        constrainInput(notesField);
 
         ok.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -943,11 +771,12 @@ public class MainApp extends Application {
                         .reduce(true, (x, y) -> x && y);
 
                 if (isNoErrors) {
-                    if (db.addSupplyEntry(transfer)) {
-                        stage.close();
-                    } else {
+                    try {
+                        db.addSupplyEntry(transfer);
+                    } catch (SQLException e) {
                         openSqlErrorWindow("the entry was not completed.");
                     }
+                    stage.close();
                 } else {
                     // Create messages for invalid entries.
                     patientInvalid.setText(errors[0]);
@@ -984,70 +813,64 @@ public class MainApp extends Application {
 
         // First row of scene elements.
         var supplierPrompt = new Text("Supplier");
-        var supplierField = new TextField();
+        var supplierField = new SupplierField();
         supplierField.setMaxWidth(TEXT_FIELD_SEARCH_WIDTH);
         var supplierComboBox = new ComboBox<Supplier>();
         supplierComboBox.setMinWidth(COMBO_BOX_MIN_WIDTH);
         var supplierInvalid = new Text();
-        gridPane.add(supplierPrompt, 0, 0);
-        gridPane.add(supplierField, 1, 0);
-        gridPane.add(supplierComboBox, 2, 0);
-        gridPane.add(supplierInvalid, 3, 0);
+        addToGrid(
+                gridPane,
+                supplierPrompt,
+                supplierField,
+                supplierComboBox,
+                supplierInvalid);
 
         // Second row of scene elements.
         var drugPrompt = new Text("Drug");
-        var drugField = new TextField();
+        var drugField = new DrugField();
         drugField.setMaxWidth(TEXT_FIELD_SEARCH_WIDTH);
         var drugComboBox = new ComboBox<Drug>();
         drugComboBox.setMinWidth(COMBO_BOX_MIN_WIDTH);
         var drugInvalid = new Text();
-        gridPane.add(drugPrompt, 0, 1);
-        gridPane.add(drugField, 1, 1);
-        gridPane.add(drugComboBox, 2, 1);
-        gridPane.add(drugInvalid, 3, 1);
+        addToGrid(gridPane, drugPrompt, drugField, drugComboBox, drugInvalid);
 
         // Third row of scene elements.
         var balancePrompt = new Text("Balance");
         var balanceField = new Text();
-        gridPane.add(balancePrompt, 0, 2);
-        gridPane.add(balanceField, 2, 2);
+        addToGrid(gridPane, balancePrompt, null, balanceField);
 
         // Fourth row of scene elements.
         var qtyPrompt = new Text("Quantity");
-        var qtyField = new TextField();
+        var qtyField = new QtyField();
         qtyField.setMaxWidth(NUM_FIELD_WIDTH);
         var qtyInvalid = new Text();
-        gridPane.add(qtyPrompt, 0, 3);
-        gridPane.add(qtyField, 2, 3);
-        gridPane.add(qtyInvalid, 3, 3);
+        addToGrid(gridPane, qtyPrompt, null, qtyField, qtyInvalid);
 
         // Fifth row of scene elements.
         var pharmacistPrompt = new Text("Pharmacist");
-        var pharmacistField = new TextField();
+        var pharmacistField = new PharmacistField();
         pharmacistField.setMaxWidth(TEXT_FIELD_SEARCH_WIDTH);
         var pharmacistComboBox = new ComboBox<Pharmacist>();
         pharmacistComboBox.setMinWidth(COMBO_BOX_MIN_WIDTH);
         var pharmacistInvalid = new Text();
-        gridPane.add(pharmacistPrompt, 0, 4);
-        gridPane.add(pharmacistField, 1, 4);
-        gridPane.add(pharmacistComboBox, 2, 4);
-        gridPane.add(pharmacistInvalid, 3, 4);
+        addToGrid(
+                gridPane,
+                pharmacistPrompt,
+                pharmacistField,
+                pharmacistComboBox,
+                pharmacistInvalid);
 
         // Sixth row of scene elements.
         var invoicePrompt = new Text("Invoice Num");
-        var invoiceField = new TextField();
+        var invoiceField = new ReferenceField();
         var invoiceInvalid = new Text();
-        gridPane.add(invoicePrompt, 0, 5);
-        gridPane.add(invoiceField, 2, 5);
-        gridPane.add(invoiceInvalid, 3, 5);
+        addToGrid(gridPane, invoicePrompt, null, invoiceField, invoiceInvalid);
 
         // Seventh row of scene elements.
         var notesPrompt = new Text("Notes");
-        var notesField = new TextField();
+        var notesField = new NotesField();
         var notesInvalid = new Text();
-        gridPane.add(notesPrompt, 0, 6);
-        gridPane.add(notesField, 2, 6);
-        gridPane.add(notesInvalid, 3, 6);
+        addToGrid(gridPane, notesPrompt, null, notesField, notesInvalid);
 
         // Buttons.
         var ok = new Button("OK");
@@ -1055,112 +878,33 @@ public class MainApp extends Application {
         FlowPane buttons = new FlowPane();
         buttons.setHgap(GAP_SPACE);
         buttons.getChildren().addAll(ok, cancel);
-        gridPane.add(buttons, 2, 7);
+        addToGrid(gridPane, null, null, buttons);
 
         // Event handlers.
-        supplierField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                supplierField.setText(newValue.toUpperCase());
+        updateComboBox(supplierField, supplierComboBox);
 
-                List<Supplier> list = db.getSuppliersList(supplierField.getText());
-                supplierComboBox.setItems(FXCollections.observableArrayList(list));
+        updateComboBox(drugField, drugComboBox);
 
-                supplierComboBox.show();
-            }
-        });
+        updateComboBox(pharmacistField, pharmacistComboBox);
 
-        drugField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                drugField.setText(newValue.toUpperCase());
-
-                List<Drug> list = db.getDrugsList(drugField.getText());
-                drugComboBox.setItems(FXCollections.observableArrayList(list));
-
-                drugComboBox.show();
-            }
-        });
-
-        pharmacistField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                pharmacistField.setText(newValue.toUpperCase());
-
-                List<Pharmacist> list = db.getPharmacistsList(pharmacistField.getText());
-                pharmacistComboBox.setItems(FXCollections.observableArrayList(list));
-
-                pharmacistComboBox.show();
-            }
-        });
-
-        drugComboBox.setOnKeyReleased(event -> {
+        drugComboBox.setOnAction(event -> {
             Drug selectedDrug = drugComboBox.getValue();
 
-            if (selectedDrug != null) {
-                balanceField.setText(String.valueOf(db.getBalance(selectedDrug.getId())));
-            }
-            // System.out.println(drugComboBox.getValue());
-            System.out.println(drugComboBox.getSelectionModel().getSelectedIndex());
-        });
-
-        qtyField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                String error = Transfer.validateQty(newValue);
-
-                if (error == null) {
-                    qtyField.setText(newValue);
-                } else {
-                    qtyField.setText(oldValue);
+            try {
+                if (selectedDrug != null) {
+                    balanceField.setText(String.valueOf(
+                            db.getBalance(selectedDrug.getId())));
                 }
+            } catch (SQLException e) {
+                openSqlErrorWindow("data could not be retrieved.");
             }
         });
 
-        invoiceField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                String newValueUpperCase = newValue.toUpperCase();
-                String error = Transfer.validateReference(newValueUpperCase);
+        constrainInput(qtyField);
 
-                if (error == null) {
-                    invoiceField.setText(newValueUpperCase);
-                } else {
-                    invoiceField.setText(oldValue);
-                }
-            }
-        });
+        constrainInput(invoiceField);
 
-        notesField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                String error = Transfer.validateNotes(newValue);
-
-                if (error == null) {
-                    notesField.setText(newValue);
-                } else {
-                    notesField.setText(oldValue);
-                }
-            }
-        });
+        constrainInput(notesField);
 
         ok.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -1183,11 +927,12 @@ public class MainApp extends Application {
                         .reduce(true, (x, y) -> x && y);
 
                 if (isNoErrors) {
-                    if (db.addReceiveEntry(transfer)) {
-                        stage.close();
-                    } else {
+                    try {
+                        db.addReceiveEntry(transfer);
+                    } catch (SQLException e) {
                         openSqlErrorWindow("the entry was not completed.");
                     }
+                    stage.close();
                 } else {
                     // Create messages for invalid entries.
                     supplierInvalid.setText(errors[0]);
@@ -1203,14 +948,29 @@ public class MainApp extends Application {
         closeOnButtonPress(cancel, stage);
 
         stage.show();
-
     }
 
-    /**
-     * A window displaying an error message
+    /*
+     * Adds listed child nodes to the GridPane on the next row.
+     * Any nulls in children will cause the column to be skipped
+     * over.
+     */
+    private void addToGrid(GridPane gridPane, Node ... children) {
+        int rowIndex = gridPane.getRowCount();
+
+        for (int i = 0; i < children.length; i++) {
+            Node child = children[i];
+            if (child != null) {
+                gridPane.add(child, i, rowIndex);
+            }
+        }
+    }
+
+    /*
+     * A window displaying an error message. Used for
+     * SQLExceptions.
      */
     private void openSqlErrorWindow(String msg) {
-
         // Root layout.
         GridPane gridPane = new GridPane();
         setUpLayout(gridPane);
@@ -1263,33 +1023,36 @@ public class MainApp extends Application {
     }
 
     /*
-     * Constrains input for a first name TextField.
+     * Updates the list in a ComboBox according to the input of
+     * a TextField.
      */
-    private void constrainInputFirstNameField(TextField nameField) {
-        nameField.textProperty().addListener(new ChangeListener<String>() {
+    private <T> void updateComboBox(SearchField<T> field, ComboBox<T> comboBox) {
+        field.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(
                     ObservableValue<? extends String> observable,
                     String oldValue,
                     String newValue) {
-                String newValueUpperCase = newValue.toUpperCase();
+                    field.setText(newValue.toUpperCase());
 
-                String error = Person.validateFirstName(newValueUpperCase);
+                try {
+                    List<T> list = field.getList(db);
+                    comboBox.setItems(
+                            FXCollections.observableArrayList(list));
 
-                if (error == null) {
-                    nameField.setText(newValueUpperCase);
-                } else {
-                    nameField.setText(oldValue);
+                    comboBox.show();
+                } catch (SQLException e) {
+                    openSqlErrorWindow("data could not be retrieved.");
                 }
             }
         });
     }
 
     /*
-     * Constrains input for a last name TextField.
+     * Constrains input of a TextControl.
      */
-    private void constrainInputLastNameField(TextField nameField) {
-        nameField.textProperty().addListener(new ChangeListener<String>() {
+    private void constrainInput(ValidatableField field) {
+        field.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(
                     ObservableValue<? extends String> observable,
@@ -1297,34 +1060,12 @@ public class MainApp extends Application {
                     String newValue) {
                 String newValueUpperCase = newValue.toUpperCase();
 
-                String error = Person.validateLastName(newValueUpperCase);
+                boolean fieldValid = field.validate(newValueUpperCase);
 
-                if (error == null) {
-                    nameField.setText(newValueUpperCase);
+                if (fieldValid) {
+                    field.setText(newValueUpperCase);
                 } else {
-                    nameField.setText(oldValue);
-                }
-            }
-        });
-    }
-
-    /*
-     * Constrains input for an addressField TextArea.
-     */
-    private void constrainInputAddressField(TextArea addressField) {
-        addressField.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(
-                    ObservableValue<? extends String> observable,
-                    String oldValue,
-                    String newValue) {
-                String newValueUpperCase = newValue.toUpperCase();
-                String error = IAgent.validateAddress(newValueUpperCase);
-
-                if (error == null) {
-                    addressField.setText(newValueUpperCase);
-                } else {
-                    addressField.setText(oldValue);
+                    field.setText(oldValue);
                 }
             }
         });

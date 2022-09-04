@@ -4,7 +4,7 @@ package com.lissajouslaser;
  * Interface for for classes whose instances share share analagous
  * entries in the agents table of the database.
  */
-public interface IAgent {
+public interface Agent {
     static final int MAX_ADDRESS_LENGTH = 64;
     public String getName();
 
@@ -23,7 +23,7 @@ public interface IAgent {
                     + " characters or less";
         }
         if (!address.isEmpty()
-                && !address.matches("[A-Z0-9\\-/ ,]+")) {
+                && !address.matches("[A-Za-z0-9\\-/ ,]+")) {
             return "Must be letters, numbers, spaces, or: /, -";
         }
         return null;

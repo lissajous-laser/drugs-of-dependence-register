@@ -3,7 +3,7 @@ package com.lissajouslaser;
 /**
  * Defines a supplier.
  */
-public class Supplier implements IAgent {
+public class Supplier implements Agent {
     static final int MAX_NAME_LENGTH = 64;
     static final int MAX_ADDRESS_LENGTH = 64;
     private int id;
@@ -57,8 +57,7 @@ public class Supplier implements IAgent {
     /*
      * Validates partial input of address, returns a String with a
      * description of the first reason why address is invalid.
-     * Otherwise returns null. No character requirements for supplier
-     * name.
+     * Otherwise returns null.
      */
     public static String validateName(String name) {
         if (name.length() > MAX_NAME_LENGTH) {
@@ -72,7 +71,7 @@ public class Supplier implements IAgent {
         if (address.isEmpty()) {
             return "Must fill in";
         }
-        return IAgent.validateAddress(this.address);
+        return Agent.validateAddress(this.address);
     }
 
     @Override

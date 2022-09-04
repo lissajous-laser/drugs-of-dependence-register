@@ -18,7 +18,7 @@ public class DatabaseTest {
     DatabaseConnection db;
 
     @BeforeEach
-    void createDatabase() {
+    void createDatabase() throws SQLException {
         db = new DatabaseConnection(TEST_DB_FILE);
     }
 

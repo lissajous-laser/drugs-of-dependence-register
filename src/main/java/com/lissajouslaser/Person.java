@@ -41,7 +41,7 @@ public abstract class Person {
     /**
      * Validates partial input of firstName, returns a String with a
      * description of the first reason why firstName is invalid.
-     * Otherwise returns null.
+     * Otherwise returns an empty String.
      **/
     public static String validateFirstName(String firstName) {
         if (firstName.length() > FIRST_NAME_MAX_LENGTH) {
@@ -49,7 +49,7 @@ public abstract class Person {
                     + " characters or less";
         }
         if (!firstName.isEmpty()
-                && !firstName.matches("[A-Z\\- ]+")) {
+                && !firstName.matches("[A-Z\\-' ]+")) {
             return "Can only have letters or hyphens";
         }
         return null;
@@ -66,7 +66,7 @@ public abstract class Person {
                     + " characters or less";
         }
         if (!lastName.isEmpty()
-                && !lastName.matches("[A-Z\\- ]+")) {
+                && !lastName.matches("[A-Z\\-' ]+")) {
             return "Can only have letters or hyphens";
         }
         return null;

@@ -9,7 +9,7 @@ package com.lissajouslaser;
  * once, and provides addional tests that cannot be performed on
  * incomplete inputs.
  */
-public class Patient extends Person implements IAgent {
+public class Patient extends Person implements Agent {
     private int id;
     private String address;
 
@@ -58,7 +58,7 @@ public class Patient extends Person implements IAgent {
         if (address.isEmpty()) {
             return "Must fill in";
         }
-        return IAgent.validateAddress(this.address);
+        return Agent.validateAddress(this.address);
     }
 
     @Override
