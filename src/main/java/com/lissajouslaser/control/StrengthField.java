@@ -1,7 +1,6 @@
 package com.lissajouslaser.control;
 
 import com.lissajouslaser.Drug;
-
 import javafx.scene.control.TextField;
 
 /**

@@ -1,11 +1,9 @@
 package com.lissajouslaser.control;
 
-import java.sql.SQLException;
-import java.util.List;
-
 import com.lissajouslaser.DatabaseConnection;
 import com.lissajouslaser.Prescriber;
-
+import java.sql.SQLException;
+import java.util.List;
 import javafx.scene.control.TextField;
 
 /**

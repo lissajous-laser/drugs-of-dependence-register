@@ -129,120 +129,120 @@ public class DatabaseConnection {
     }
 
     private void createPreparedStatements() throws SQLException {
-            prescriberInsert = con.prepareStatement(""
-                    + "INSERT INTO prescribers "
-                    + "    (first_name, last_name, prescriber_num) "
-                    + "VALUES (?, ?, ?);");
+        prescriberInsert = con.prepareStatement(""
+                + "INSERT INTO prescribers "
+                + "    (first_name, last_name, prescriber_num) "
+                + "VALUES (?, ?, ?);");
 
-            pharmacistInsert = con.prepareStatement(""
-                    + "INSERT INTO pharmacists "
-                    + "    (first_name, last_name, registration) "
-                    + "VALUES (?, ?, ?);");
+        pharmacistInsert = con.prepareStatement(""
+                + "INSERT INTO pharmacists "
+                + "    (first_name, last_name, registration) "
+                + "VALUES (?, ?, ?);");
 
-            drugInsert = con.prepareStatement(""
-                    + "INSERT INTO drugs "
-                    + "    (name, strength, dose_form) "
-                    + "VALUES (?, ?, ?);");
+        drugInsert = con.prepareStatement(""
+                + "INSERT INTO drugs "
+                + "    (name, strength, dose_form) "
+                + "VALUES (?, ?, ?);");
 
-            agentInsert = con.prepareStatement(""
-                    + "INSERT INTO agents "
-                    + "    (is_supplier, first_name, last_name, company_name, address) "
-                    + "VALUES (?, ?, ?, ?, ?);");
+        agentInsert = con.prepareStatement(""
+                + "INSERT INTO agents "
+                + "    (is_supplier, first_name, last_name, company_name, address) "
+                + "VALUES (?, ?, ?, ?, ?);");
 
-            supplyInsert = con.prepareStatement(""
-                    + "INSERT INTO transfers ("
-                    + "        transfer_date,"
-                    + "        agent_id,"
-                    + "        drug_id,"
-                    + "        qty_in,"
-                    + "        qty_out,"
-                    + "        balance,"
-                    + "        prescriber_id,"
-                    + "        reference,"
-                    + "        notes,"
-                    + "        pharmacist_id"
-                    + ")"
-                    + "    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+        supplyInsert = con.prepareStatement(""
+                + "INSERT INTO transfers ("
+                + "        transfer_date,"
+                + "        agent_id,"
+                + "        drug_id,"
+                + "        qty_in,"
+                + "        qty_out,"
+                + "        balance,"
+                + "        prescriber_id,"
+                + "        reference,"
+                + "        notes,"
+                + "        pharmacist_id"
+                + ")"
+                + "    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
 
-            receiveInsert = con.prepareStatement(""
-                    + "INSERT INTO transfers ("
-                    + "        transfer_date,"
-                    + "        agent_id,"
-                    + "        drug_id,"
-                    + "        qty_in,"
-                    + "        qty_out,"
-                    + "        balance,"
-                    + "        reference,"
-                    + "        notes,"
-                    + "        pharmacist_id"
-                    + ")"
-                    + "    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);");
+        receiveInsert = con.prepareStatement(""
+                + "INSERT INTO transfers ("
+                + "        transfer_date,"
+                + "        agent_id,"
+                + "        drug_id,"
+                + "        qty_in,"
+                + "        qty_out,"
+                + "        balance,"
+                + "        reference,"
+                + "        notes,"
+                + "        pharmacist_id"
+                + ")"
+                + "    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);");
 
-            prescriberSearch = con.prepareStatement(""
-                    + "SELECT * FROM prescribers "
-                    + "WHERE last_name like ? "
-                    + "ORDER BY last_name ASC, first_name ASC;");
+        prescriberSearch = con.prepareStatement(""
+                + "SELECT * FROM prescribers "
+                + "WHERE last_name like ? "
+                + "ORDER BY last_name ASC, first_name ASC;");
 
-            pharmacistSearch = con.prepareStatement(""
-                    + "SELECT * FROM pharmacists "
-                    + "WHERE last_name like ?"
-                    + "ORDER BY last_name ASC, first_name ASC;");
+        pharmacistSearch = con.prepareStatement(""
+                + "SELECT * FROM pharmacists "
+                + "WHERE last_name like ?"
+                + "ORDER BY last_name ASC, first_name ASC;");
 
-            drugSearch = con.prepareStatement(""
-                    + "SELECT * FROM drugs "
-                    + "WHERE name like ? "
-                    + "ORDER BY name ASC, strength ASC, dose_form ASC;");
+        drugSearch = con.prepareStatement(""
+                + "SELECT * FROM drugs "
+                + "WHERE name like ? "
+                + "ORDER BY name ASC, strength ASC, dose_form ASC;");
 
-            // SQLite implements boolean as a 1 bit integer.
-            patientSearch = con.prepareStatement(""
-                    + "SELECT * FROM agents "
-                    + "WHERE is_supplier = 0 AND last_name LIKE ? "
-                    + "ORDER BY last_name ASC, first_name ASC;");
+        // SQLite implements boolean as a 1 bit integer.
+        patientSearch = con.prepareStatement(""
+                + "SELECT * FROM agents "
+                + "WHERE is_supplier = 0 AND last_name LIKE ? "
+                + "ORDER BY last_name ASC, first_name ASC;");
 
-            // SQLite implements boolean as a 1 bit integer.
-            supplierSearch = con.prepareStatement(""
-                    + "SELECT * FROM agents "
-                    + "WHERE is_supplier = 1 AND company_name LIKE ? "
-                    + "ORDER BY company_name ASC;");
+        // SQLite implements boolean as a 1 bit integer.
+        supplierSearch = con.prepareStatement(""
+                + "SELECT * FROM agents "
+                + "WHERE is_supplier = 1 AND company_name LIKE ? "
+                + "ORDER BY company_name ASC;");
 
-            agentSearch = con.prepareStatement(""
-                    + "SELECT * FROM agents "
-                    + "WHERE company_name LIKE ? OR last_name LIKE ? "
-                    + "ORDER BY is_supplier DESC, last_name ASC, first_name ASC;");
+        agentSearch = con.prepareStatement(""
+                + "SELECT * FROM agents "
+                + "WHERE company_name LIKE ? OR last_name LIKE ? "
+                + "ORDER BY is_supplier DESC, last_name ASC, first_name ASC;");
 
-            balanceSearch = con.prepareStatement(""
-                    + "SELECT balance FROM transfers "
-                    + "WHERE drug_id = ? "
-                    + "ORDER BY id DESC "
-                    + "LIMIT 1;");
-            
-            transferSearchByDrug = con.prepareStatement(""              
-                    + "SELECT "
-                    + "    transfer_date as 'date',"
-                    + "    trim(agents.last_name || ' ' || agents.first_name"
-                    + "        || agents.company_name) AS agent,"
-                    + "    agents.address,"
-                    + "    drugs.name || ' ' || drugs.strength || ' '"
-                    + "        || drugs.dose_form AS drug,"
-                    + "    qty_in AS 'in',"
-                    + "    qty_out AS out,"
-                    + "    balance,"
-                    + "    prescribers.first_name || ' '"
-                    + "        || prescribers.last_name AS prescriber,"
-                    + "    reference,"
-                    + "    substr(pharmacists.first_name, 1, 1) || '. '"
-                    + "        || pharmacists.last_name AS pharmacist,"
-                    + "    notes "
-                    + "FROM transfers "
-                    + "LEFT JOIN agents "
-                    + "ON agent_id = agents.id "
-                    + "LEFT JOIN drugs "
-                    + "ON drug_id = drugs.id "
-                    + "LEFT JOIN prescribers "
-                    + "ON prescriber_id = prescribers.id "
-                    + "LEFT JOIN pharmacists "
-                    + "ON pharmacist_id = pharmacists.id "
-                    + "WHERE drugs.name LIKE ?;");
+        balanceSearch = con.prepareStatement(""
+                + "SELECT balance FROM transfers "
+                + "WHERE drug_id = ? "
+                + "ORDER BY id DESC "
+                + "LIMIT 1;");
+        
+        transferSearchByDrug = con.prepareStatement(""              
+                + "SELECT "
+                + "    transfer_date as 'date',"
+                + "    trim(agents.last_name || ' ' || agents.first_name"
+                + "        || agents.company_name) AS agent,"
+                + "    agents.address,"
+                + "    drugs.name || ' ' || drugs.strength || ' '"
+                + "        || drugs.dose_form AS drug,"
+                + "    qty_in AS 'in',"
+                + "    qty_out AS out,"
+                + "    balance,"
+                + "    prescribers.first_name || ' '"
+                + "        || prescribers.last_name AS prescriber,"
+                + "    reference,"
+                + "    substr(pharmacists.first_name, 1, 1) || '. '"
+                + "        || pharmacists.last_name AS pharmacist,"
+                + "    notes "
+                + "FROM transfers "
+                + "LEFT JOIN agents "
+                + "ON agent_id = agents.id "
+                + "LEFT JOIN drugs "
+                + "ON drug_id = drugs.id "
+                + "LEFT JOIN prescribers "
+                + "ON prescriber_id = prescribers.id "
+                + "LEFT JOIN pharmacists "
+                + "ON pharmacist_id = pharmacists.id "
+                + "WHERE drugs.name LIKE ?;");
     }
 
     /**
@@ -289,11 +289,11 @@ public class DatabaseConnection {
      * was encountered.
      */
     public void addPatient(Patient patient) throws SQLException {
-        int isBooleanIdx = 1;
-        int firstNameIdx = 2;
-        int lastNameIdx = 3;
-        int companyNameIdx = 4;
-        int addressIdx = 5;
+        final int isBooleanIdx = 1;
+        final int firstNameIdx = 2;
+        final int lastNameIdx = 3;
+        final int companyNameIdx = 4;
+        final int addressIdx = 5;
 
         agentInsert.setBoolean(isBooleanIdx, false);
         agentInsert.setString(firstNameIdx, patient.getFirstName());
@@ -310,11 +310,11 @@ public class DatabaseConnection {
      * was encountered.
      */
     public void addSupplier(Supplier supplier) throws SQLException {
-        int isBooleanIdx = 1;
-        int firstNameIdx = 2;
-        int lastNameIdx = 3;
-        int companyNameIdx = 4;
-        int addressIdx = 5;
+        final int isBooleanIdx = 1;
+        final int firstNameIdx = 2;
+        final int lastNameIdx = 3;
+        final int companyNameIdx = 4;
+        final int addressIdx = 5;
 
         agentInsert.setBoolean(isBooleanIdx, true);
         agentInsert.setString(firstNameIdx, "");
@@ -329,17 +329,17 @@ public class DatabaseConnection {
      * true if no SQLException was encountered.
      **/
     public void addSupplyEntry(Transfer transfer) throws SQLException {
-        int dateIdx = 1;
-        int agentIdIdx = 2;
-        int drugIdIdx = 3;
-        int qtyInIdx = 4;
-        int qtyOutIdx = 5;
-        int balanceIdx = 6;
-        int prescriberIdIdx = 7;
-        int referenceIdx = 8;
-        int notesIdx = 9;
-        int pharmacistIdIdx = 10;
-        var date = Date.valueOf(LocalDate.now().toString());
+        final int dateIdx = 1;
+        final int agentIdIdx = 2;
+        final int drugIdIdx = 3;
+        final int qtyInIdx = 4;
+        final int qtyOutIdx = 5;
+        final int balanceIdx = 6;
+        final int prescriberIdIdx = 7;
+        final int referenceIdx = 8;
+        final int notesIdx = 9;
+        final int pharmacistIdIdx = 10;
+        final var date = Date.valueOf(LocalDate.now().toString());
         int qtyIn = 0;
         int qtyOut = 0;
 
@@ -372,16 +372,16 @@ public class DatabaseConnection {
      **/
     public void addReceiveEntry(Transfer transfer)
             throws SQLException {
-        int dateIdx = 1;
-        int agentIdIdx = 2;
-        int drugIdIdx = 3;
-        int qtyInIdx = 4;
-        int qtyOutIdx = 5;
-        int balanceIdx = 6;
-        int referenceIdx = 7;
-        int notesIdx = 8;
-        int pharmacistIdIdx = 9;
-        var date = Date.valueOf(LocalDate.now().toString());
+        final int dateIdx = 1;
+        final int agentIdIdx = 2;
+        final int drugIdIdx = 3;
+        final int qtyInIdx = 4;
+        final int qtyOutIdx = 5;
+        final int balanceIdx = 6;
+        final int referenceIdx = 7;
+        final int notesIdx = 8;
+        final int pharmacistIdIdx = 9;
+        final var date = Date.valueOf(LocalDate.now().toString());
         int qtyIn = 0;
         int qtyOut = 0;
 
@@ -493,11 +493,11 @@ public class DatabaseConnection {
      **/
     public List<Agent> getAgentsList(String searchTerm)
             throws SQLException {
-        int idIdx = 1;
-        int firstNameIdx = 3;
-        int lastNameIdx = 4;
-        int companyNameIdx = 5;
-        int addressIdx = 6;
+        final int idIdx = 1;
+        final int firstNameIdx = 3;
+        final int lastNameIdx = 4;
+        final int companyNameIdx = 5;
+        final int addressIdx = 6;
 
         ResultSet results = getAgents(searchTerm);
         List<Agent> resultsAsList = new ArrayList<>();
@@ -529,10 +529,10 @@ public class DatabaseConnection {
      */
     public List<Prescriber> getPrescribersList(String searchTerm)
             throws SQLException {
-        int idIdx = 1;
-        int firstNameIdx = 2;
-        int lastNameIdx = 3;
-        int prescriberNumIdx = 4;
+        final int idIdx = 1;
+        final int firstNameIdx = 2;
+        final int lastNameIdx = 3;
+        final int prescriberNumIdx = 4;
 
         ResultSet results = getPrescribers(searchTerm);
         List<Prescriber> resultsAsList = new ArrayList<>();
@@ -554,10 +554,10 @@ public class DatabaseConnection {
      */
     public List<Pharmacist> getPharmacistsList(String searchTerm) 
             throws SQLException {
-        int idIdx = 1;
-        int firstNameIdx = 2;
-        int lastNameIdx = 3;
-        int registrationIdx = 4;
+        final int idIdx = 1;
+        final int firstNameIdx = 2;
+        final int lastNameIdx = 3;
+        final int registrationIdx = 4;
 
         ResultSet results = getPharmacists(searchTerm);
         List<Pharmacist> resultsAsList = new ArrayList<>();
@@ -579,10 +579,10 @@ public class DatabaseConnection {
      */
     public List<Patient> getPatientsList(String searchTerm)
             throws SQLException {
-        int idIdx = 1;
-        int firstNameIdx = 3;
-        int lastNameIdx = 4;
-        int addressIdx = 6;
+        final int idIdx = 1;
+        final int firstNameIdx = 3;
+        final int lastNameIdx = 4;
+        final int addressIdx = 6;
 
         ResultSet results = getPatients(searchTerm);
         List<Patient> resultsAsList = new ArrayList<>();
@@ -604,9 +604,9 @@ public class DatabaseConnection {
      */
     public List<Supplier> getSuppliersList(String searchTerm)
             throws SQLException {
-        int idIdx = 1;
-        int nameIdx = 5;
-        int addressIdx = 6;
+        final int idIdx = 1;
+        final int nameIdx = 5;
+        final int addressIdx = 6;
 
         ResultSet results = getSuppliers(searchTerm);
         List<Supplier> resultsAsList = new ArrayList<>();
@@ -627,10 +627,10 @@ public class DatabaseConnection {
      */
     public List<Drug> getDrugsList(String searchTerm)
             throws SQLException {
-        int idIdx = 1;
-        int nameIdx = 2;
-        int strengthIdx = 3;
-        int doseFormIdx = 4;
+        final int idIdx = 1;
+        final int nameIdx = 2;
+        final int strengthIdx = 3;
+        final int doseFormIdx = 4;
 
         ResultSet results = getDrugs(searchTerm);
         List<Drug> resultsAsList = new ArrayList<>();
@@ -646,36 +646,40 @@ public class DatabaseConnection {
         return resultsAsList;
     }
 
+    /**
+     * Returns a list of transfers matching the drug.
+     */
     public List<Register> getTransfersByDrugList(int drugId)
             throws SQLException {
-        int dateIdx = 1;
-        int agentNameIdx = 2;
-        int addressIdx = 3;
-        int drugIdx = 4;
-        int qtyInIdx = 5;
-        int qtyOutIdx = 6;
-        int balanceIdx = 7;
-        int prescriberIdx = 8;
-        int referenceIdx = 9;
-        int pharmacistIdx = 10;
-        int noteIdx = 11;
+        final int dateIdx = 1;
+        final int agentNameIdx = 2;
+        final int addressIdx = 3;
+        final int drugIdx = 4;
+        final int qtyInIdx = 5;
+        final int qtyOutIdx = 6;
+        final int balanceIdx = 7;
+        final int prescriberIdx = 8;
+        final int referenceIdx = 9;
+        final int pharmacistIdx = 10;
+        final int noteIdx = 11;
 
         ResultSet results = getTransfersByDrug(drugId);
         List<Register> resultsAsList = new ArrayList<>();
 
         while (results.next()) {
             var register = new Register(
-                results.getDate(dateIdx, new GregorianCalendar()).toLocalDate(),
-                results.getString(agentNameIdx),
-                results.getString(addressIdx),
-                results.getString(drugIdx),
-                results.getInt(qtyInIdx),
-                results.getInt(qtyOutIdx),
-                results.getInt(balanceIdx),
-                results.getString(prescriberIdx),
-                results.getString(referenceIdx),
-                results.getString(pharmacistIdx),
-                results.getString(noteIdx));
+                    results.getDate(dateIdx, new GregorianCalendar()).toLocalDate(),
+                    results.getString(agentNameIdx),
+                    results.getString(addressIdx),
+                    results.getString(drugIdx),
+                    results.getInt(qtyInIdx),
+                    results.getInt(qtyOutIdx),
+                    results.getInt(balanceIdx),
+                    results.getString(prescriberIdx),
+                    results.getString(referenceIdx),
+                    results.getString(pharmacistIdx),
+                    results.getString(noteIdx));
+
             resultsAsList.add(register);
         }
         return resultsAsList;

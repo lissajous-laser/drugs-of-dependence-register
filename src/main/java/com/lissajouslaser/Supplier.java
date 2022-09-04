@@ -54,7 +54,7 @@ public class Supplier implements Agent {
         return validateName(this.name);
     }
 
-    /*
+    /**
      * Validates partial input of address, returns a String with a
      * description of the first reason why address is invalid.
      * Otherwise returns null.

@@ -31,13 +31,6 @@ public abstract class Person {
 
     }
 
-    String validateLastName() {
-        if (lastName.isEmpty()) {
-            return "Must fill in";
-        }
-        return validateLastName(this.lastName);
-    }
-
     /**
      * Validates partial input of firstName, returns a String with a
      * description of the first reason why firstName is invalid.
@@ -53,6 +46,13 @@ public abstract class Person {
             return "Can only have letters or hyphens";
         }
         return null;
+    }
+
+    String validateLastName() {
+        if (lastName.isEmpty()) {
+            return "Must fill in";
+        }
+        return validateLastName(this.lastName);
     }
 
     /**

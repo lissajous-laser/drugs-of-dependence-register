@@ -1,9 +1,5 @@
 package com.lissajouslaser;
 
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
-
 import com.lissajouslaser.control.AddressArea;
 import com.lissajouslaser.control.DoseFormField;
 import com.lissajouslaser.control.DrugField;
@@ -23,7 +19,9 @@ import com.lissajouslaser.control.StrengthField;
 import com.lissajouslaser.control.SupplierField;
 import com.lissajouslaser.control.SupplierNameField;
 import com.lissajouslaser.control.ValidatableField;
-
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -642,11 +640,11 @@ public class MainApp extends Application {
         patientComboBox.setMinWidth(COMBO_BOX_MIN_WIDTH);
         var patientInvalid = new Text();
         addToGrid(
-            gridPane,
-            patientPrompt,
-            patientField,
-            patientComboBox,
-            patientInvalid);
+                gridPane,
+                patientPrompt,
+                patientField,
+                patientComboBox,
+                patientInvalid);
 
 
         // Second row of scene elements.
@@ -955,7 +953,7 @@ public class MainApp extends Application {
      * Any nulls in children will cause the column to be skipped
      * over.
      */
-    private void addToGrid(GridPane gridPane, Node ... children) {
+    private void addToGrid(GridPane gridPane, Node... children) {
         int rowIndex = gridPane.getRowCount();
 
         for (int i = 0; i < children.length; i++) {

@@ -1,10 +1,8 @@
 package com.lissajouslaser.control;
 
+import com.lissajouslaser.DatabaseConnection;
 import java.sql.SQLException;
 import java.util.List;
-
-import com.lissajouslaser.DatabaseConnection;
-
 import javafx.beans.property.StringProperty;
 
 /**

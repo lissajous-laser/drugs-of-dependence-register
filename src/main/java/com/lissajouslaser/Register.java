@@ -2,7 +2,7 @@ package com.lissajouslaser;
 
 import java.time.LocalDate;
 
-/*
+/**
  * A container class representing transfer entries with joins
  * on all its foreign keys.
  */
@@ -19,6 +19,9 @@ public class Register {
     private String pharmacistName;
     private String notes;
 
+    /**
+     * Constructor.
+     */
     public Register(
             LocalDate date,
             String agentName,

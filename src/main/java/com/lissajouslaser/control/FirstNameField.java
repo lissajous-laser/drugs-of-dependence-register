@@ -1,10 +1,9 @@
 package com.lissajouslaser.control;
 
 import com.lissajouslaser.Person;
-
 import javafx.scene.control.TextField;
 
-/*
+/**
  * A JavaFx TextField that can be validated to meet the
  * requirements of a first name.
  */

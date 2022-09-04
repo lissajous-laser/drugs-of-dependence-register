@@ -1,10 +1,9 @@
 package com.lissajouslaser.control;
 
 import com.lissajouslaser.Agent;
-
 import javafx.scene.control.TextArea;
 
-/*
+/**
  * A JavaFx TextArea that can be validated to meet the
  * requirements of an address.
  */

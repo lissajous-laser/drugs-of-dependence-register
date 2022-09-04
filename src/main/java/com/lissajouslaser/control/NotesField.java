@@ -1,7 +1,6 @@
 package com.lissajouslaser.control;
 
 import com.lissajouslaser.Transfer;
-
 import javafx.scene.control.TextField;
 
 /*
