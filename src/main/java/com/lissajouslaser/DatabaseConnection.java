@@ -32,6 +32,8 @@ public class DatabaseConnection {
     private PreparedStatement agentSearch;
     private PreparedStatement balanceSearch;
     private PreparedStatement transferSearchByDrug;
+    private PreparedStatement transferSearchByDate;
+    private PreparedStatement reverseTransferInsert;
 
     /**
      * Default constructor. Connects to database and prepares
@@ -112,7 +114,7 @@ public class DatabaseConnection {
         createTable = ""
                 + "CREATE TABLE IF NOT EXISTS transfers ("
                 + "    id integer CONSTRAINT transfer_key PRIMARY KEY,"
-                + "    transfer_date date NOT NULL,"
+                + "    transfer_date date,"
                 + "    agent_id integer REFERENCES agents (id),"
                 + "    drug_id integer REFERENCES drugs (id),"
                 + "    qty_in integer,"
@@ -215,13 +217,15 @@ public class DatabaseConnection {
                 + "WHERE drug_id = ? "
                 + "ORDER BY id DESC "
                 + "LIMIT 1;");
-        
-        transferSearchByDrug = con.prepareStatement(""              
+
+        String searchTemplate = ""
                 + "SELECT "
+                + "    transfers.id,"
+                + "    drug_id,"
                 + "    transfer_date as 'date',"
-                + "    trim(agents.last_name || ' ' || agents.first_name"
-                + "        || agents.company_name) AS agent,"
-                + "    agents.address,"
+                + "    trim(agents.first_name || ' ' || agents.last_name"
+                + "        || agents.company_name) || ' ['"
+                + "        || agents.address || ']' AS agent,"
                 + "    drugs.name || ' ' || drugs.strength || ' '"
                 + "        || drugs.dose_form AS drug,"
                 + "    qty_in AS 'in',"
@@ -242,7 +246,46 @@ public class DatabaseConnection {
                 + "ON prescriber_id = prescribers.id "
                 + "LEFT JOIN pharmacists "
                 + "ON pharmacist_id = pharmacists.id "
-                + "WHERE drugs.name LIKE ?;");
+                + "WHERE";
+
+        transferSearchByDrug = con.prepareStatement(
+                searchTemplate
+                + "    drug_id = ?"
+                + "    AND transfer_date >= ?"
+                + "    AND transfer_date <= ?;");
+        
+        transferSearchByDate = con.prepareStatement(
+                searchTemplate
+                + "    transfer_date = ?;");
+
+        reverseTransferInsert = con.prepareStatement(""
+                + "INSERT INTO transfers ("
+                + "    transfer_date,"
+                + "    agent_id,"
+                + "    drug_id,"
+                + "    qty_in,"
+                + "    qty_out,"
+                + "    balance,"
+                + "    prescriber_id,"
+                + "    reference,"
+                + "    notes,"
+                + "    pharmacist_id) "
+                + "SELECT"
+                + "    ?,"
+                + "    agent_id,"
+                + "    drug_id,"
+                // To reverse the entry qty_out of the old entry is entered into
+                // the qty_in of the new entry, and the qty_in of the old entry
+                // is entered into the qty_out of the old entry.
+                + "    qty_out," 
+                + "    qty_in,"
+                + "    ?,"
+                + "    prescriber_id,"
+                + "    reference,"
+                + "    ?,"
+                + "    pharmacist_id "
+                + "FROM transfers "
+                + "WHERE id = ?;");
     }
 
     /**
@@ -479,12 +522,52 @@ public class DatabaseConnection {
     /**
      * Returns results of transfers filtered by a specific drug.
      **/
-    public ResultSet getTransfersByDrug(int drugId) 
+    public ResultSet getTransfersByDrug(SearchByDrug searchTerm)
             throws SQLException {
-        transferSearchByDrug.setInt(1, drugId);
-        agentSearch.execute();
+        transferSearchByDrug.setInt(1, searchTerm.getDrug().getId());
+        transferSearchByDrug.setDate(
+                2,
+                Date.valueOf(searchTerm.getStartDate()));
+        transferSearchByDrug.setDate(
+                3,
+                Date.valueOf(searchTerm.getEndDate()));
 
-        return agentSearch.getResultSet();
+        transferSearchByDrug.execute();
+
+        return transferSearchByDrug.getResultSet();
+    }
+
+    /**
+     * Returns results of transfers matching a specific date.
+     */
+    public ResultSet getTransfersByDate(LocalDate date)
+            throws SQLException {
+        transferSearchByDate.setDate(1, Date.valueOf(date));
+
+        transferSearchByDate.execute();
+
+        return transferSearchByDate.getResultSet();
+    }
+
+    /**
+     * Creates an entry to negate the changes to the
+     * balance of a previous entry.
+     */
+    public void reverseEntry(ReverseEntry entry)
+            throws SQLException {
+        final int dateIdx = 1;
+        final int balanceIdx = 2;
+        final int notesIdx = 3;
+        final int idIdx = 4;
+        final var date = Date.valueOf(LocalDate.now().toString());
+
+        reverseTransferInsert.setDate(dateIdx, date);
+        reverseTransferInsert.setInt(balanceIdx, entry.getBalanceAfter());
+        reverseTransferInsert.setString(notesIdx, entry.getNotes());
+        reverseTransferInsert.setInt(idIdx, entry.getId());
+
+        reverseTransferInsert.execute();
+
     }
 
     /**
@@ -552,7 +635,7 @@ public class DatabaseConnection {
      * Returns a list of Pharmacists matching the searchTerm.
      * Returns null if there was an SQLException.
      */
-    public List<Pharmacist> getPharmacistsList(String searchTerm) 
+    public List<Pharmacist> getPharmacistsList(String searchTerm)
             throws SQLException {
         final int idIdx = 1;
         final int firstNameIdx = 2;
@@ -647,30 +730,53 @@ public class DatabaseConnection {
     }
 
     /**
-     * Returns a list of transfers matching the drug.
+     * Returns a list of transfers matching the drug and date range
+     * of SearchByDrug.
      */
-    public List<Register> getTransfersByDrugList(int drugId)
+    public List<TransferSearchResult>
+            getTransfersByDrugList(SearchByDrug searchByDrug)
             throws SQLException {
-        final int dateIdx = 1;
-        final int agentNameIdx = 2;
-        final int addressIdx = 3;
-        final int drugIdx = 4;
-        final int qtyInIdx = 5;
-        final int qtyOutIdx = 6;
-        final int balanceIdx = 7;
-        final int prescriberIdx = 8;
-        final int referenceIdx = 9;
-        final int pharmacistIdx = 10;
-        final int noteIdx = 11;
 
-        ResultSet results = getTransfersByDrug(drugId);
-        List<Register> resultsAsList = new ArrayList<>();
+        ResultSet results = getTransfersByDrug(searchByDrug);
+
+        return toListOfTransferSearchResults(results);
+    }
+
+    /**
+     * Returns a list of transfers matching the date.
+     */
+    public List<TransferSearchResult> getTransfersByDateList(LocalDate date)
+            throws SQLException {    
+        ResultSet results = getTransfersByDate(date);
+
+        return toListOfTransferSearchResults(results);
+    }
+
+    private List<TransferSearchResult> 
+            toListOfTransferSearchResults(ResultSet results)
+            throws SQLException {
+
+        final int transferIdIdx = 1;
+        final int drugIdIdx = 2;
+        final int dateIdx = 3;
+        final int agentNameIdx = 4;
+        final int drugIdx = 5;
+        final int qtyInIdx = 6;
+        final int qtyOutIdx = 7;
+        final int balanceIdx = 8;
+        final int prescriberIdx = 9;
+        final int referenceIdx = 10;
+        final int pharmacistIdx = 11;
+        final int noteIdx = 12;
+
+        List<TransferSearchResult> resultsAsList = new ArrayList<>();
 
         while (results.next()) {
-            var register = new Register(
+            var register = new TransferSearchResult(
+                    results.getInt(transferIdIdx),
+                    results.getInt(drugIdIdx),
                     results.getDate(dateIdx, new GregorianCalendar()).toLocalDate(),
                     results.getString(agentNameIdx),
-                    results.getString(addressIdx),
                     results.getString(drugIdx),
                     results.getInt(qtyInIdx),
                     results.getInt(qtyOutIdx),
@@ -687,20 +793,20 @@ public class DatabaseConnection {
 
     /**
      * Returns current balance of a Drug with its primary key
-     * as the parameter. Returns 0 if there is no record, and
-     * returns -1 if there was an SQLException.
+     * as the parameter. Returns 0 if there is no record, meaning
+     * drug has never been transferred.
      */
     public int getBalance(int drugId) throws SQLException {
         int balance = 0;
-
         balanceSearch.setInt(1, drugId);
         balanceSearch.execute();
 
         ResultSet results = balanceSearch.getResultSet();
 
-        if (results.next()) {
+        while (results.next()) {
             balance = results.getInt(1);
         }
+
 
         return balance;
     }

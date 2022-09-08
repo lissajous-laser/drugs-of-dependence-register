@@ -15,6 +15,6 @@ public class ReferenceField extends TextField implements ValidatableField {
      * requirements.
      */
     public boolean validate(String newValue) {
-        return Transfer.validateReference(newValue) == null;
+        return Transfer.validateReference(newValue).isEmpty();
     }
 }

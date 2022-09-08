@@ -13,6 +13,6 @@ public class PrescriberNumField extends TextField implements ValidatableField {
      * requirements.
      */
     public boolean validate(String newValue) {
-        return Prescriber.validatePrescriberNumber(newValue) == null;
+        return Prescriber.validatePrescriberNumber(newValue).isEmpty();
     }
 }

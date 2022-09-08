@@ -9,6 +9,6 @@ public class QtyField extends TextField implements ValidatableField {
      * requirements.
      */
     public boolean validate(String newValue) {
-        return Transfer.validateQty(newValue) == null;
+        return Transfer.validateQty(newValue).isEmpty();
     }
 }

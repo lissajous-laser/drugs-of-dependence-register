@@ -13,6 +13,6 @@ public class DoseFormField extends TextField implements ValidatableField {
      * requirements.
      */
     public boolean validate(String newValue) {
-        return Drug.validateDoseForm(newValue) == null;
+        return Drug.validateDoseForm(newValue).isEmpty();
     }
 }

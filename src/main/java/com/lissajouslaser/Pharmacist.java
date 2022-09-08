@@ -8,7 +8,6 @@ package com.lissajouslaser;
  * key in a GUI. validate() tests the instance variables all at
  * once, and provides addional tests that cannot be performed on
  * incomplete inputs.
-
  */
 public class Pharmacist extends Person {
     static final int REGISTRATION_LENGTH = 13;
@@ -55,7 +54,7 @@ public class Pharmacist extends Person {
      *         1 - lastName;
      *         2 - registration;
      *         If there is no error for an associated field, the
-     *         String at the associated index is null;
+     *         String at the associated index is empty;
      */
     public String[] validate() {
         final int numOfFields = 3;
@@ -70,11 +69,11 @@ public class Pharmacist extends Person {
 
     private String validateRegistration() {
         if (!registration.matches("PHA[0-9]{10}")) {
-            return "Must be as printed on you certicate";
+            return "Must be as printed\non certificate";
         }
         if (registration.length() != REGISTRATION_LENGTH) {
             return "Must be " + REGISTRATION_LENGTH
-                    + " characters";
+                    + "\ncharacters";
         }
         return validateRegistration(this.registration);
     }
@@ -82,7 +81,7 @@ public class Pharmacist extends Person {
     /**
      * Validates partial input of address, returns a String with a
      * description of the first reason why address is invalid.
-     * Otherwise returns null. Registration permitted to be empty. A
+     * Otherwise returns an empty string. Registration permitted to be empty. A
      * valid registration is of the form PHAxxxxxxxxxx, where x's are
      * digits.
      */
@@ -95,7 +94,7 @@ public class Pharmacist extends Person {
                 && !registration.matches("[PHA0-9]*")) {
             return "Must be as printed your certificate";
         }
-        return null;
+        return "";
     }
 
     @Override

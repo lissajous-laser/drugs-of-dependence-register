@@ -57,7 +57,7 @@ public class Prescriber extends Person {
      *         1 - lastName;
      *         2 - prescriberNum;
      *         If there is no error for an associated field, the
-     *         String at the associated index is null;
+     *         String at the associated index is empty;
      */
     public String[] validate() {
         final int numOfFields = 3;
@@ -81,7 +81,7 @@ public class Prescriber extends Person {
     /**
      * Validates partial input of presriber number, returns a String
      * with a description of the first reason why address is invalid.
-     * Otherwise returns null. Permitted to be empty.
+     * Otherwise returns an empty string. Permitted to be empty.
      */
     public static String validatePrescriberNumber(String prescriberNum) {
         if (!prescriberNum.isEmpty()
@@ -92,7 +92,7 @@ public class Prescriber extends Person {
             return "Must be " + PRESCRIBER_NUM_LENGTH
                     + " digits";
         }
-        return null;
+        return "";
     }
 
     @Override

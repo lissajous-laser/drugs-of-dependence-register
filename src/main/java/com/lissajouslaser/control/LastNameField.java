@@ -13,6 +13,6 @@ public class LastNameField extends TextField implements ValidatableField {
      * requirements.
      */
     public boolean validate(String newValue) {
-        return Person.validateLastName(newValue) == null;
+        return Person.validateLastName(newValue).isEmpty();
     }
 }

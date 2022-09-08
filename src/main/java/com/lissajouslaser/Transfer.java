@@ -41,7 +41,7 @@ public class Transfer {
         this.balanceBefore = balanceBefore;
         this.qty = qty;
         this.prescriber = prescriber;
-        this.reference = reference;
+        this.reference = reference.toUpperCase();
         this.notes = notes;
         this.pharmacist = pharmacist;
     }
@@ -107,7 +107,7 @@ public class Transfer {
      *         5 - notes
      *         6 - pharmacist
      *         If there is no error for an associated field, the
-     *         String at the associated index is null;
+     *         String at the associated index is empty;
      */
     public String[] validateSupplyToPatient() {
         String[] errors = new String[7];
@@ -139,7 +139,7 @@ public class Transfer {
      *         5 - notes
      *         6 - pharmacist
      *         If there is no error for an associated field, the
-     *         String at the associated index is null;
+     *         String at the associated index is empty;
      */
     public String[] validateReceiveFromSupplier() {
         String[] errors = new String[7];
@@ -147,7 +147,7 @@ public class Transfer {
         errors[0] = validateForeignKey(agent);
         errors[1] = validateForeignKey(drug);
         errors[2] = validateQty();
-        // Index three not used.
+        errors[3] = "";               // Index three not used.
         errors[4] = validateReference();
         errors[5] = validateNotes();
         errors[6] = validateForeignKey(pharmacist);
@@ -155,29 +155,25 @@ public class Transfer {
     }
 
     /*
-     * The parameter is a IAgent, Drug, Prescriber or
+     * Checks the parameter is a IAgent, Drug, Prescriber or
      * Pharmacist.
      */
     private String validateForeignKey(Object obj) {
         if (obj == null) {
             return "Must select";
         }
-        return null;
+        return "";
     }
 
     private String validateQty() {
         if (qty.isEmpty()) {
             return "Must fill in";
         }
-        if (balanceBefore.isEmpty()) {
-            // Assumes previous balance obtained by selecting a drug.
-            return "Must select drug";
-        }
         if ("0".equals(qty)) {
             return "Can't be zero";
         }
         if (getBalanceAfter() < 0) {
-            return "Resulting balance can't be negative";
+            return "Resulting balance\ncan't be negative";
         }
         return validateQty(this.qty);
     }
@@ -185,21 +181,23 @@ public class Transfer {
     /**
      * Validates quantity to transfer as input text, returns a String
      * with a description of the first reason why address is invalid.
-     * Otherwise returns null.
+     * Otherwise returns an empty string.
      **/
     public static String validateQty(String qty) {
-        if (!qty.isEmpty()
-                && !qty.matches("[0-9]+")) {
+        if (!qty.matches("[0-9]*")) {
             return "Must be in digits";
         }
         if (qty.length() > 5) {
             return "Must be " + QTY_MAX_LENGTH
                     + " digits or less";
         }
-        return null;
+        return "";
     }
 
     private String validateReference() {
+        if (reference.isEmpty()) {
+            return "Must fill in";
+        }
         return validateReference(this.reference);
     }
 
@@ -208,35 +206,34 @@ public class Transfer {
      * number for supplier orders, or a dispensing number for
      * medication supply to patients. Returns a String with a
      * description of the first reason why firstName is invalid.
-     * Otherwise returns null. Allowed to be empty.
+     * Otherwise returns an empty string. Allowed to be empty.
      **/
     public static String validateReference(String reference) {
-        if (!reference.isEmpty()
-                && !reference.matches("[A-Z0-9]+")) {
+        if (!reference.matches("[A-Z0-9]*")) {
             return "Must be numbers or letters";
         }
         if (reference.length() > REFERENCE_MAX_LENGTH) {
             return "Must be " + REFERENCE_MAX_LENGTH
                     + " characters or less";
         }
-        return null;
+        return "";
     }
 
-    private String validateNotes() {
+    private String validateNotes() {   
         return validateNotes(this.notes);
     }
 
     /**
      * Validates notes, No character requirements for notes. Returns a
      * String with a description of the first reason why firstName is
-     * invalid. Otherwise returns null.
+     * invalid. Otherwise returns an empty string.
      **/
     public static String validateNotes(String notes) {
         if (notes.length() > NOTES_MAX_LENGTH) {
             return "Notes must be " + NOTES_MAX_LENGTH
                     + " characters or less";
         }
-        return null;
+        return "";
     }
 
 }

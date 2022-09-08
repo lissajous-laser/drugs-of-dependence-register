@@ -13,6 +13,6 @@ public class DrugNameField extends TextField implements ValidatableField {
      * requirements.
      */
     public boolean validate(String newValue) {
-        return Drug.validateName(newValue) == null;
-    }   
+        return Drug.validateName(newValue).isEmpty();
+    }
 }

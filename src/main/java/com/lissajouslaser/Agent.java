@@ -22,10 +22,9 @@ public interface Agent {
             return "Must be " + MAX_ADDRESS_LENGTH
                     + " characters or less";
         }
-        if (!address.isEmpty()
-                && !address.matches("[A-Za-z0-9\\-/ ,]+")) {
+        if (!address.matches("[A-Za-z0-9\\-/ ,]*")) {
             return "Must be letters, numbers, spaces, or: /, -";
         }
-        return null;
+        return "";
     }
 }

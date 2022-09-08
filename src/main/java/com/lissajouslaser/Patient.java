@@ -19,7 +19,7 @@ public class Patient extends Person implements Agent {
      */
     public Patient(String firstName, String lastName, String address) {
         super(firstName, lastName);
-        this.address = address.toUpperCase();
+        this.address = address;
     }
 
     /**
@@ -28,7 +28,7 @@ public class Patient extends Person implements Agent {
     public Patient(int id, String firstName, String lastName, String address) {
         super(firstName, lastName);
         this.id = id;
-        this.address = address.toUpperCase();
+        this.address = address;
     }
 
     /**
@@ -41,7 +41,7 @@ public class Patient extends Person implements Agent {
      *         1 - lastName;
      *         2 - address;
      *         If there is no error for an associated field, the
-     *         String at the associated index is null;
+     *         String at the associated index is empty;
      */
     public String[] validate() {
         final int numOfFields = 3;

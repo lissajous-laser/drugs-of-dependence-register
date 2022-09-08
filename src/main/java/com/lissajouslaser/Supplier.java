@@ -16,7 +16,7 @@ public class Supplier implements Agent {
      */
     public Supplier(String name, String address) {
         this.name = name.toUpperCase();
-        this.address = address.toUpperCase();
+        this.address = address;
     }
 
     /**
@@ -25,7 +25,7 @@ public class Supplier implements Agent {
     public Supplier(int id, String name, String address) {
         this.id = id;
         this.name = name.toUpperCase();
-        this.address = address.toUpperCase();
+        this.address = address;
     }
 
     /**
@@ -37,7 +37,7 @@ public class Supplier implements Agent {
      *         0 - name
      *         1 - address
      *         If there is no error for an associated field, the
-     *         String at the associated index is null;
+     *         String at the associated index is empty;
      */
     public String[] validate() {
         String[] errors = new String[2];
@@ -57,14 +57,14 @@ public class Supplier implements Agent {
     /**
      * Validates partial input of address, returns a String with a
      * description of the first reason why address is invalid.
-     * Otherwise returns null.
+     * Otherwise returns an empty string.
      */
     public static String validateName(String name) {
         if (name.length() > MAX_NAME_LENGTH) {
             return "Name must be " + MAX_NAME_LENGTH
                     + " characters or less";
         }
-        return null;
+        return "";
     }
 
     private String validateAddress() {

@@ -13,6 +13,6 @@ public class StrengthField extends TextField implements ValidatableField {
      * requirements.
      */
     public boolean validate(String newValue) {
-        return Drug.validateStrength(newValue) == null;
+        return Drug.validateStrength(newValue).isEmpty();
     }
 }

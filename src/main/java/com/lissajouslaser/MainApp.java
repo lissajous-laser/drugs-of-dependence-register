@@ -20,6 +20,7 @@ import com.lissajouslaser.control.SupplierField;
 import com.lissajouslaser.control.SupplierNameField;
 import com.lissajouslaser.control.ValidatableField;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import javafx.application.Application;
@@ -28,37 +29,80 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Control;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.Tooltip;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 /**
  * Class for starting GUI application.
  */
 public class MainApp extends Application {
-    static final int SUBWINDOW_A_WIDTH = 540;
-    static final int SUBWINDOW_A_HEIGHT = 240;
-    static final int SUBWINDOW_B_WIDTH = 640;
+    // For smaller subwindows, e.g. Add new Patient.
+    static final int SUBWINDOW_A_WIDTH = 480;
+    static final int SUBWINDOW_A_HEIGHT = 200;
+    // For larger subwindows, e.g. Supply to Patient.
+    static final int SUBWINDOW_B_WIDTH = 660;
     static final int SUBWINDOW_B_HEIGHT = 320;
-    static final int ERROR_WINDOW_HEIGHT = 120;
-    static final int ERROR_WINDOW_WIDTH = 180;
+    // For the largest subwindows, e.g. Search By Drug.
+    static final int SUBWINDOW_C_WIDTH = 1450;
+    static final int SUBWINDOW_C_HEIGHT = 560;
+    // For main window.
+    static final int MAIN_WINDOW_WIDTH = 900;
+    static final int MAIN_WINDOW_HEIGHT = 420;
+    // For error message from SQLExceptions.
+    static final int ERROR_WINDOW_HEIGHT = 160;
+    static final int ERROR_WINDOW_WIDTH = 480;
+    // For Reverse Entry Window.
+    static final int REVERSE_ENTRY_WINDOW_WIDTH = 932;
+    static final int REVERSE_ENTRY_WINDOW_HEIGHT = 180;
+    // Buttons with images.
+    static final int GRAPHIC_BUTTON_WIDTH = 160;
+    static final int GRAPHIC_BUTTON_HEIGHT = 190;
+    // Spacing parameters for GridPane.
     static final int PADDING_SPACE = 15;
-    static final int GAP_SPACE = 7;
-    static final int TEXT_FIELD_WIDTH = 300;
+    static final int GAP_SPACE = 8;
+    // Column widths for transfer table
+    static final int DATE_WIDTH = 100;
+    static final int AGENT_WIDTH = 400;
+    static final int DRUG_WIDTH = 200;
+    static final int IN_OUT_WIDTH = 50;
+    static final int BALANCE_WIDTH = 80;
+    static final int PRESCRIBER_WIDTH = 200;
+    static final int REFERENCE_WIDTH = 100;
+    static final int PHARMACIST_WIDTH = 120;
+    static final int NOTES_WIDTH = 100;
+
+
+    // Other parameters
+    static final int OK_CANCEL_BUTTON_WIDTH = 80;
+    static final int TEXT_FIELD_WIDTH = 250;
     static final int TEXT_AREA_HEIGHT = 60;
     static final int TEXT_FIELD_SEARCH_WIDTH = 70;
-    static final int NUM_FIELD_WIDTH = 60;
-    static final int ERROR_FONT_SIZE = 10;
-    static final int LIST_VIEW_WIDTH = 400;
-    static final int LIST_VIEW_HEIGHT = 300;
-    static final int COMBO_BOX_MIN_WIDTH = 200;
+    static final int NUM_FIELD_WIDTH = 70;
+    static final int ERROR_FONT_SIZE = 11;
+    static final int COMBO_BOX_WIDTH = 320;
+    static final int DATE_PICKER_WIDTH = 120;
+    static final int TOOLTIP_DELAY = 400; // milliseconds
 
     DatabaseConnection db;
 
@@ -67,45 +111,74 @@ public class MainApp extends Application {
         try {
             db = new DatabaseConnection();
         } catch (SQLException e) {
-            openSqlErrorWindow("could not start database.");
+            openSqlErrorWindow(e.toString());
         }
 
-        final int mainWindowWidth = 600;
-        final int mainWindowHeight = 350;
+        openMainWindow();
 
-        s.setScene(new Scene(
-                mainWindow(),
-                mainWindowWidth,
-                mainWindowHeight));
-        s.show();
     }
 
-    private GridPane mainWindow() {
-        GridPane mainWindowGrid = new GridPane();
-        mainWindowGrid.setHgap(GAP_SPACE);
-        mainWindowGrid.setVgap(GAP_SPACE);
+    private void openMainWindow() {
+        // Root layour.
+        GridPane gridPane = new GridPane();
+        setUpSpacing(gridPane);
 
-        mainWindowGrid.setPadding(new Insets(
-                PADDING_SPACE,
-                PADDING_SPACE,
-                PADDING_SPACE,
-                PADDING_SPACE));
+        // Stage.
+        Stage stage = new Stage();
+        stage.setTitle("Drugs of Addiction Register");
+        stage.setScene(new Scene(
+        gridPane, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT));
 
-        var addPatientButton = new Button("Add Patient");
-        var addPrescriberButton = new Button("Add Prescriber");
-        var addDrugButton = new Button("Add Drug");
-        var addPharmacistButton = new Button("Add Pharmacist");
         var supplyToPatientButton = new Button("Supply to Patient");
         var receiveFromSupplierButton = new Button("Receive from Supplier");
-        var addSupplierButton = new Button("Add supplier");
+        var searchByDrugButton = new Button("Search by Drug");
+        var searchByDateButton = new Button("Search by Date");
+        var addPatientButton = new Button("Add Patient");
+        var addPrescriberButton = new Button("Add Prescriber");
+        var addPharmacistButton = new Button("Add Pharmacist");
+        var addDrugButton = new Button("Add Drug");
+        var addSupplierButton = new Button("Add Supplier");
 
-        mainWindowGrid.add(addPatientButton, 0, 0);
-        mainWindowGrid.add(addPrescriberButton, 1, 0);
-        mainWindowGrid.add(addDrugButton, 2, 0);
-        mainWindowGrid.add(addPharmacistButton, 3, 0);
-        mainWindowGrid.add(supplyToPatientButton, 0, 1);
-        mainWindowGrid.add(receiveFromSupplierButton, 1, 1);
-        mainWindowGrid.add(addSupplierButton, 2, 1);
+        addButtonImage(
+                supplyToPatientButton,
+                "file:SupplyToPatient.png");
+        addButtonImage(
+                receiveFromSupplierButton,
+                "file:ReceiveFromSupplier.png");
+        addButtonImage(
+                searchByDateButton,
+                "file:SearchByDate.png");
+        addButtonImage(
+                searchByDrugButton,
+                "file:SearchByDrug.png");
+        addButtonImage(
+                addPatientButton,
+                "file:Patient.png");
+        addButtonImage(
+                addPrescriberButton,
+                "file:Doctor.png");
+        addButtonImage(
+                addPharmacistButton,
+                "file:Pharmacist.png");
+        addButtonImage(
+                addDrugButton,
+                "file:Drug.png");
+        addButtonImage(
+                addSupplierButton,
+                "file:Supplier.png");
+
+        addToGrid(
+                gridPane,
+                supplyToPatientButton,
+                receiveFromSupplierButton,
+                searchByDateButton,
+                searchByDrugButton);
+        addToGrid(gridPane,
+                addPatientButton,
+                addPrescriberButton,
+                addPharmacistButton,
+                addDrugButton,
+                addSupplierButton);
 
         addPrescriberButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -163,7 +236,21 @@ public class MainApp extends Application {
             }
         });
 
-        return mainWindowGrid;
+        searchByDrugButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                openWindowSearchByDrug();
+            }
+        });
+
+        searchByDateButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                openWindowSearchByDate();
+            }
+        });
+
+        stage.show();
     }
 
     /**
@@ -174,7 +261,7 @@ public class MainApp extends Application {
 
         // Root layout.
         GridPane gridPane = new GridPane();
-        setUpLayout(gridPane);
+        setUpSpacing(gridPane);
 
         // Stage.
         Stage stage = new Stage();
@@ -185,41 +272,53 @@ public class MainApp extends Application {
         // First row of scene elements.
         var namePrompt = new Text("Name");
         var nameField = new DrugNameField();
-        nameField.setMaxWidth(TEXT_FIELD_WIDTH);
+        nameField.setPrefWidth(TEXT_FIELD_WIDTH);
         var nameInvalid = new Text();
         nameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        addToGrid(gridPane, namePrompt, nameField, nameInvalid);
+        FlowPane nameFieldAndValidation = new FlowPane();
+        nameFieldAndValidation.setHgap(GAP_SPACE);
+        nameFieldAndValidation.getChildren().addAll(nameField, nameInvalid);
+        addToGrid(gridPane, namePrompt, nameFieldAndValidation);
 
         // Second row of scene elements.
         var strengthPrompt = new Text("Strength");
         var strengthField = new StrengthField();
-        strengthField.setMaxWidth(TEXT_FIELD_WIDTH);
+        strengthField.setPrefWidth(TEXT_FIELD_WIDTH);
         var strengthInvalid = new Text();
         strengthInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        addToGrid(gridPane, strengthPrompt, strengthField, strengthInvalid);
+        FlowPane strengthFieldAndValidation = new FlowPane();
+        strengthFieldAndValidation.setHgap(GAP_SPACE);
+        strengthFieldAndValidation
+                .getChildren()
+                .addAll(strengthField, strengthInvalid);
+        addToGrid(gridPane, strengthPrompt, strengthFieldAndValidation);
 
         // Third row of scene elements.
-        var doseFormPrompt = new Text("Form");
+        var doseFormPrompt = new Text("Dose Form");
         var doseFormField = new DoseFormField();
-        doseFormField.setMaxWidth(TEXT_FIELD_WIDTH);
+        doseFormField.setPrefWidth(TEXT_FIELD_WIDTH);
         var doseFormInvalid = new Text();
         doseFormInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        addToGrid(gridPane, doseFormPrompt, doseFormField, doseFormInvalid);
+        FlowPane doseFormFieldAndValidation = new FlowPane();
+        doseFormFieldAndValidation.setHgap(GAP_SPACE);
+        doseFormFieldAndValidation
+                .getChildren()
+                .addAll(doseFormField, doseFormInvalid);
+        addToGrid(gridPane, doseFormPrompt, doseFormFieldAndValidation);
 
         // Buttons.
         var ok = new Button("OK");
         var cancel = new Button("Cancel");
         FlowPane buttons = new FlowPane();
-        buttons.setHgap(GAP_SPACE);
-        buttons.getChildren().addAll(ok, cancel);
+        setUpOkCancelButtons(ok, cancel, buttons);
         addToGrid(gridPane, null, buttons);
 
         // Event handlers.
         constrainInput(nameField);
 
-        constrainInput(strengthField);
+        constrainInputLowerCase(strengthField);
 
-        constrainInput(doseFormField);
+        constrainInputLowerCase(doseFormField);
 
         ok.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -233,13 +332,13 @@ public class MainApp extends Application {
 
                 boolean isNoErrors = Arrays
                         .stream(errors)
-                        .map(str -> str == null)
+                        .map(str -> str.isEmpty())
                         .reduce(true, (x, y) -> x && y);
                 if (isNoErrors) {
                     try {
                         db.addDrug(drug);
                     } catch (SQLException e) {
-                        openSqlErrorWindow("the entry was not completed.");
+                        openSqlErrorWindow(e.toString());
                     }
                     stage.close();
                 } else {
@@ -263,7 +362,7 @@ public class MainApp extends Application {
 
         // Root layout.
         GridPane gridPane = new GridPane();
-        setUpLayout(gridPane);
+        setUpSpacing(gridPane);
 
         // Stage.
         Stage stage = new Stage();
@@ -272,37 +371,50 @@ public class MainApp extends Application {
                 gridPane, SUBWINDOW_A_WIDTH, SUBWINDOW_A_HEIGHT));
 
         // First row of scene elements.
-        var firstNamePrompt = new Text("First name");
+        var firstNamePrompt = new Text("First Name");
         var firstNameField = new FirstNameField();
-        firstNameField.setMaxWidth(TEXT_FIELD_WIDTH);
+        firstNameField.setPrefWidth(TEXT_FIELD_WIDTH);
         var firstNameInvalid = new Text();
         firstNameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        addToGrid(gridPane, firstNamePrompt, firstNameField, firstNameInvalid);
+        FlowPane firstNameFieldAndValidation = new FlowPane();
+        firstNameFieldAndValidation.setHgap(GAP_SPACE);
+        firstNameFieldAndValidation
+                .getChildren()
+                .addAll(firstNameField, firstNameInvalid);
+        addToGrid(gridPane, firstNamePrompt, firstNameFieldAndValidation);
 
         // Second row of scene elements.
-        var lastNamePrompt = new Text("Last name");
+        var lastNamePrompt = new Text("Last Name");
         var lastNameField = new LastNameField();
-        lastNameField.setMaxWidth(TEXT_FIELD_WIDTH);
+        lastNameField.setPrefWidth(TEXT_FIELD_WIDTH);
         var lastNameInvalid = new Text();
         lastNameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        addToGrid(gridPane, lastNamePrompt, lastNameField, lastNameInvalid);
+        FlowPane lastNameFieldAndValidation = new FlowPane();
+        lastNameFieldAndValidation.setHgap(GAP_SPACE);
+        lastNameFieldAndValidation
+                .getChildren()
+                .addAll(lastNameField, lastNameInvalid);
+        addToGrid(gridPane, lastNamePrompt, lastNameFieldAndValidation);
 
         // Third Row of scene elements.
         var addressPrompt = new Text("Address");
         var addressField = new AddressArea();
-        addressField.setMaxWidth(TEXT_FIELD_WIDTH);
-        addressField.setMaxHeight(TEXT_AREA_HEIGHT);
+        addressField.setPrefSize(TEXT_FIELD_WIDTH, TEXT_AREA_HEIGHT);
         addressField.setWrapText(true);
         var addressInvalid = new Text();
         addressInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        addToGrid(gridPane, addressPrompt, addressField, addressInvalid);
+        FlowPane addressFieldAndValidation = new FlowPane();
+        addressFieldAndValidation.setHgap(GAP_SPACE);
+        addressFieldAndValidation
+                .getChildren()
+                .addAll(addressField, addressInvalid);
+        addToGrid(gridPane, addressPrompt, addressFieldAndValidation);
 
         // Buttons.
         var ok = new Button("OK");
         var cancel = new Button("Cancel");
         FlowPane buttons = new FlowPane();
-        buttons.setHgap(GAP_SPACE);
-        buttons.getChildren().addAll(ok, cancel);
+        setUpOkCancelButtons(ok, cancel, buttons);
         addToGrid(gridPane, null, buttons);
 
         // Event handlers.
@@ -310,7 +422,7 @@ public class MainApp extends Application {
 
         constrainInput(lastNameField);
 
-        constrainInput(addressField);
+        constrainInputLowerCase(addressField);
 
         ok.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -324,13 +436,13 @@ public class MainApp extends Application {
 
                 boolean isNoErrors = Arrays
                         .stream(errors)
-                        .map(str -> str == null)
+                        .map(str -> str.isEmpty())
                         .reduce(true, (x, y) -> x && y);
                 if (isNoErrors) {
                     try {
                         db.addPatient(patient);
                     } catch (SQLException e) {
-                        openSqlErrorWindow("the entry was not completed.");                       
+                        openSqlErrorWindow(e.toString());
                     }
                     stage.close();
                 } else {
@@ -354,7 +466,7 @@ public class MainApp extends Application {
 
         // Root layout.
         GridPane gridPane = new GridPane();
-        setUpLayout(gridPane);
+        setUpSpacing(gridPane);
 
         // Stage.
         Stage stage = new Stage();
@@ -363,39 +475,49 @@ public class MainApp extends Application {
                 gridPane, SUBWINDOW_A_WIDTH, SUBWINDOW_A_HEIGHT));
 
         // First row of scene elements.
-        var firstNamePrompt = new Text("First name");
+        var firstNamePrompt = new Text("First Name");
         var firstNameField = new FirstNameField();
-        firstNameField.setMaxWidth(TEXT_FIELD_WIDTH);
+        firstNameField.setPrefWidth(TEXT_FIELD_WIDTH);
         var firstNameInvalid = new Text();
         firstNameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        addToGrid(gridPane, firstNamePrompt, firstNameField, firstNameInvalid);
+        FlowPane firstNameFieldAndValidation = new FlowPane();
+        firstNameFieldAndValidation.setHgap(GAP_SPACE);
+        firstNameFieldAndValidation
+                .getChildren()
+                .addAll(firstNameField, firstNameInvalid);
+        addToGrid(gridPane, firstNamePrompt, firstNameFieldAndValidation);
 
         // Second row of scene elements.
-        var lastNamePrompt = new Text("Last name");
+        var lastNamePrompt = new Text("Last Name");
         var lastNameField = new LastNameField();
-        lastNameField.setMaxWidth(TEXT_FIELD_WIDTH);
+        lastNameField.setPrefWidth(TEXT_FIELD_WIDTH);
         var lastNameInvalid = new Text();
         lastNameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        addToGrid(gridPane, lastNamePrompt, lastNameField, lastNameInvalid);
+        FlowPane lastNameFieldAndValidation = new FlowPane();
+        lastNameFieldAndValidation.setHgap(GAP_SPACE);
+        lastNameFieldAndValidation
+                .getChildren()
+                .addAll(lastNameField, lastNameInvalid);
+        addToGrid(gridPane, lastNamePrompt, lastNameFieldAndValidation);
 
         // Third Row of scene elements.
-        var registrationPrompt = new Text("Registration number");
+        var registrationPrompt = new Text("Registration");
         var registrationField = new RegistrationField();
-        registrationField.setMaxWidth(TEXT_FIELD_WIDTH);
+        registrationField.setPrefWidth(TEXT_FIELD_WIDTH);
         var registrationInvalid = new Text();
         registrationInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        addToGrid(
-                gridPane,
-                registrationPrompt,
-                registrationField,
-                registrationInvalid);
+        FlowPane registrationFieldAndValidation = new FlowPane();
+        registrationFieldAndValidation.setHgap(GAP_SPACE);
+        registrationFieldAndValidation
+                .getChildren()
+                .addAll(registrationField, registrationInvalid);
+        addToGrid(gridPane, registrationPrompt, registrationFieldAndValidation);
 
         // Buttons.
         var ok = new Button("OK");
         var cancel = new Button("Cancel");
         FlowPane buttons = new FlowPane();
-        buttons.setHgap(GAP_SPACE);
-        buttons.getChildren().addAll(ok, cancel);
+        setUpOkCancelButtons(ok, cancel, buttons);
         addToGrid(gridPane, null, buttons);
 
         // EventHandlers.
@@ -417,13 +539,13 @@ public class MainApp extends Application {
 
                 boolean isNoErrors = Arrays
                         .stream(errors)
-                        .map(str -> str == null)
+                        .map(str -> str.isEmpty())
                         .reduce(true, (x, y) -> x && y);
                 if (isNoErrors) {
                     try {
                         db.addPharmacist(pharmacist);
                     } catch (SQLException e) {
-                        openSqlErrorWindow("the entry was not completed.");
+                        openSqlErrorWindow(e.toString());
                     }
                     stage.close();
                 } else {
@@ -447,7 +569,7 @@ public class MainApp extends Application {
 
         // Root layout.
         GridPane gridPane = new GridPane();
-        setUpLayout(gridPane);
+        setUpSpacing(gridPane);
 
         // Stage.
         Stage stage = new Stage();
@@ -456,39 +578,51 @@ public class MainApp extends Application {
                 gridPane, SUBWINDOW_A_WIDTH, SUBWINDOW_A_HEIGHT));
 
         // First row of scene elements.
-        var firstNamePrompt = new Text("First name");
+        var firstNamePrompt = new Text("First Name");
         var firstNameField = new FirstNameField();
-        firstNameField.setMaxWidth(TEXT_FIELD_WIDTH);
+        firstNameField.setPrefWidth(TEXT_FIELD_WIDTH);
         var firstNameInvalid = new Text();
         firstNameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        addToGrid(gridPane, firstNamePrompt, firstNameField, firstNameInvalid);
+        FlowPane firstNameFieldAndValidation = new FlowPane();
+        firstNameFieldAndValidation.setHgap(GAP_SPACE);
+        firstNameFieldAndValidation
+                .getChildren()
+                .addAll(firstNameField, firstNameInvalid);
+        addToGrid(gridPane, firstNamePrompt, firstNameFieldAndValidation);
 
         // Second row of scene elements.
-        var lastNamePrompt = new Text("Last name");
+        var lastNamePrompt = new Text("Last Name");
         var lastNameField = new LastNameField();
-        lastNameField.setMaxWidth(TEXT_FIELD_WIDTH);
+        lastNameField.setPrefWidth(TEXT_FIELD_WIDTH);
         var lastNameInvalid = new Text();
         lastNameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        addToGrid(gridPane, lastNamePrompt, lastNameField, lastNameInvalid);
+        FlowPane lastNameFieldAndValidation = new FlowPane();
+        lastNameFieldAndValidation.setHgap(GAP_SPACE);
+        lastNameFieldAndValidation
+                .getChildren()
+                .addAll(lastNameField, lastNameInvalid);
+        addToGrid(gridPane, lastNamePrompt, lastNameFieldAndValidation);
 
         // Third row of scene elements.
-        var prescriberNumPrompt = new Text("Prescriber number");
+        var prescriberNumPrompt = new Text("Prescriber\nNumber");
         var prescriberNumField = new PrescriberNumField();
-        prescriberNumField.setMaxWidth(TEXT_FIELD_WIDTH);
+        prescriberNumField.setPrefWidth(TEXT_FIELD_WIDTH);
         var prescriberNumInvalid = new Text();
         prescriberNumInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        addToGrid(
-                gridPane,
+        FlowPane prescriberNumFieldAndValidation = new FlowPane();
+        prescriberNumFieldAndValidation.setHgap(GAP_SPACE);
+        prescriberNumFieldAndValidation
+                .getChildren()
+                .addAll(prescriberNumField, prescriberNumInvalid);
+        addToGrid(gridPane,
                 prescriberNumPrompt,
-                prescriberNumField,
-                prescriberNumInvalid);
+                prescriberNumFieldAndValidation);
 
         // Buttons.
         var ok = new Button("OK");
         var cancel = new Button("Cancel");
         FlowPane buttons = new FlowPane();
-        buttons.setHgap(GAP_SPACE);
-        buttons.getChildren().addAll(ok, cancel);
+        setUpOkCancelButtons(ok, cancel, buttons);
         addToGrid(gridPane, null, buttons);
 
         // Event handlers.
@@ -510,13 +644,13 @@ public class MainApp extends Application {
 
                 boolean isNoErrors = Arrays
                         .stream(errors)
-                        .map(str -> str == null)
+                        .map(str -> str.isEmpty())
                         .reduce(true, (x, y) -> x && y);
                 if (isNoErrors) {
                     try {
                         db.addPrescriber(prescriber);
                     } catch (SQLException e) {
-                        openSqlErrorWindow("the entry was not completed.");
+                        openSqlErrorWindow(e.toString());
                     }
                     stage.close();
                 } else {
@@ -541,7 +675,7 @@ public class MainApp extends Application {
 
         // Root layout.
         GridPane gridPane = new GridPane();
-        setUpLayout(gridPane);
+        setUpSpacing(gridPane);
 
         // Stage.
         Stage stage = new Stage();
@@ -550,39 +684,43 @@ public class MainApp extends Application {
                 gridPane, SUBWINDOW_A_WIDTH, SUBWINDOW_A_HEIGHT));
 
         // First row of scene elements.
-        var supplierNamePrompt = new Text("Supplier name");
+        var supplierNamePrompt = new Text("Supplier Name");
         var supplierNameField = new SupplierNameField();
-        supplierNameField.setMaxWidth(TEXT_FIELD_WIDTH);
+        supplierNameField.setPrefWidth(TEXT_FIELD_WIDTH);
         var supplierNameInvalid = new Text();
         supplierNameInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        addToGrid(
-                gridPane,
-                supplierNamePrompt,
-                supplierNameField,
-                supplierNameInvalid);
+        FlowPane supplierNameFieldAndValidation = new FlowPane();
+        supplierNameFieldAndValidation.setHgap(GAP_SPACE);
+        supplierNameFieldAndValidation
+                .getChildren()
+                .addAll(supplierNameField, supplierNameInvalid);
+        addToGrid(gridPane, supplierNamePrompt, supplierNameFieldAndValidation);
 
         // Second Row of scene elements.
         var addressPrompt = new Text("Address");
         var addressField = new AddressArea();
-        addressField.setMaxWidth(TEXT_FIELD_WIDTH);
-        addressField.setMaxHeight(TEXT_AREA_HEIGHT);
+        addressField.setPrefSize(TEXT_FIELD_WIDTH, TEXT_AREA_HEIGHT);
         addressField.setWrapText(true);
         var addressInvalid = new Text();
         addressInvalid.setFont(new Font(ERROR_FONT_SIZE));
-        addToGrid(gridPane, addressPrompt, addressField, addressInvalid);
+        FlowPane addressFieldAndValidation = new FlowPane();
+        addressFieldAndValidation.setHgap(GAP_SPACE);
+        addressFieldAndValidation
+                .getChildren()
+                .addAll(addressField, addressInvalid);
+        addToGrid(gridPane, addressPrompt, addressFieldAndValidation);
 
         // Buttons.
         var ok = new Button("OK");
         var cancel = new Button("Cancel");
         FlowPane buttons = new FlowPane();
-        buttons.setHgap(GAP_SPACE);
-        buttons.getChildren().addAll(ok, cancel);
+        setUpOkCancelButtons(ok, cancel, buttons);
         addToGrid(gridPane, null, buttons);
 
         // Event Handlers.
         constrainInput(supplierNameField);
 
-        constrainInput(addressField);
+        constrainInputLowerCase(addressField);
 
         ok.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -595,13 +733,13 @@ public class MainApp extends Application {
 
                 boolean isNoErrors = Arrays
                         .stream(errors)
-                        .map(str -> str == null)
+                        .map(str -> str.isEmpty())
                         .reduce(true, (x, y) -> x && y);
                 if (isNoErrors) {
                     try {
                         db.addSupplier(supplier);
                     } catch (SQLException e) {
-                        openSqlErrorWindow("the entry was not completed.");
+                        openSqlErrorWindow(e.toString());
                     }
                     stage.close();
                 } else {
@@ -609,7 +747,7 @@ public class MainApp extends Application {
                     addressInvalid.setText(errors[1]);
                 }
             }
-        });        
+        });
 
         closeOnButtonPress(cancel, stage);
 
@@ -624,7 +762,7 @@ public class MainApp extends Application {
 
         // Root layout.
         GridPane gridPane = new GridPane();
-        setUpLayout(gridPane);
+        setUpSpacing(gridPane);
 
         // Stage.
         Stage stage = new Stage();
@@ -635,26 +773,37 @@ public class MainApp extends Application {
         // First row of scene elements.
         var patientPrompt = new Text("Patient");
         var patientField = new PatientField();
-        patientField.setMaxWidth(TEXT_FIELD_SEARCH_WIDTH);
+        patientField.setPrefWidth(TEXT_FIELD_SEARCH_WIDTH);
         var patientComboBox = new ComboBox<Patient>();
-        patientComboBox.setMinWidth(COMBO_BOX_MIN_WIDTH);
+        patientComboBox.setPrefWidth(COMBO_BOX_WIDTH);
+        var addPatientButton = new Button("+");
+        addTooltip(addPatientButton, "Add patient");      
         var patientInvalid = new Text();
-        addToGrid(
-                gridPane,
+        patientInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        HBox patientBoxAndValidation = new HBox();
+        patientBoxAndValidation.spacingProperty().set(GAP_SPACE);
+        patientBoxAndValidation
+                .getChildren()
+                .addAll(patientComboBox, addPatientButton, patientInvalid);
+        addToGrid(gridPane,
                 patientPrompt,
                 patientField,
-                patientComboBox,
-                patientInvalid);
-
+                patientBoxAndValidation);
 
         // Second row of scene elements.
         var drugPrompt = new Text("Drug");
         var drugField = new DrugField();
-        drugField.setMaxWidth(TEXT_FIELD_SEARCH_WIDTH);
+        drugField.setPrefWidth(TEXT_FIELD_SEARCH_WIDTH);
         var drugComboBox = new ComboBox<Drug>();
-        drugComboBox.setMinWidth(COMBO_BOX_MIN_WIDTH);
+        drugComboBox.setPrefWidth(COMBO_BOX_WIDTH);
         var drugInvalid = new Text();
-        addToGrid(gridPane, drugPrompt, drugField, drugComboBox, drugInvalid);
+        drugInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        HBox drugBoxAndValidation = new HBox();
+        drugBoxAndValidation.spacingProperty().set(GAP_SPACE);
+        drugBoxAndValidation
+                .getChildren()
+                .addAll(drugComboBox, drugInvalid);
+        addToGrid(gridPane, drugPrompt, drugField, drugBoxAndValidation);
 
         // Third row of scene elements.
         var balancePrompt = new Text("Balance");
@@ -664,60 +813,91 @@ public class MainApp extends Application {
         // Fourth row of scene elements.
         var qtyPrompt = new Text("Quantity");
         var qtyField = new QtyField();
-        qtyField.setMaxWidth(NUM_FIELD_WIDTH);
+        qtyField.setPrefWidth(NUM_FIELD_WIDTH);
         var qtyInvalid = new Text();
-        addToGrid(gridPane, qtyPrompt, null, qtyField, qtyInvalid);
+        qtyInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        FlowPane qtyBoxAndValidation = new FlowPane();
+        qtyBoxAndValidation.setHgap(GAP_SPACE);
+        qtyBoxAndValidation
+                .getChildren()
+                .addAll(qtyField, qtyInvalid);
+        addToGrid(gridPane, qtyPrompt, null, qtyBoxAndValidation);
 
         // Fifth row of scene elements.
         var prescriberPrompt = new Text("Prescriber");
         var prescriberField = new PrescriberField();
-        prescriberField.setMaxWidth(TEXT_FIELD_SEARCH_WIDTH);
+        prescriberField.setPrefWidth(TEXT_FIELD_SEARCH_WIDTH);
         var prescriberComboBox = new ComboBox<Prescriber>();
-        prescriberComboBox.setMinWidth(COMBO_BOX_MIN_WIDTH);
+        prescriberComboBox.setPrefWidth(COMBO_BOX_WIDTH);
+        var addPrescriberButton = new Button("+");
+        addTooltip(addPrescriberButton, "Add prescriber");
         var prescriberInvalid = new Text();
+        prescriberInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        HBox prescriberBoxAndValidation = new HBox();
+        prescriberBoxAndValidation.spacingProperty().set(GAP_SPACE);
+        prescriberBoxAndValidation.getChildren().addAll(
+                prescriberComboBox,
+                addPrescriberButton,
+                prescriberInvalid);
         addToGrid(
                 gridPane,
                 prescriberPrompt,
                 prescriberField,
-                prescriberComboBox,
-                prescriberInvalid);
+                prescriberBoxAndValidation);
 
         // Sixth row of scene elements.
         var pharmacistPrompt = new Text("Pharmacist");
         var pharmacistField = new PharmacistField();
-        pharmacistField.setMaxWidth(TEXT_FIELD_SEARCH_WIDTH);
+        pharmacistField.setPrefWidth(TEXT_FIELD_SEARCH_WIDTH);
         var pharmacistComboBox = new ComboBox<Pharmacist>();
-        pharmacistComboBox.setMinWidth(COMBO_BOX_MIN_WIDTH);
+        pharmacistComboBox.setPrefWidth(COMBO_BOX_WIDTH);
         var pharmacistInvalid = new Text();
-        addToGrid(
-                gridPane,
-                pharmacistPrompt,
-                pharmacistField,
+        pharmacistInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        HBox pharmacistBoxAndValidation = new HBox();
+        pharmacistBoxAndValidation.spacingProperty().set(GAP_SPACE);
+        pharmacistBoxAndValidation.getChildren().addAll(
                 pharmacistComboBox,
                 pharmacistInvalid);
+        addToGrid(gridPane,
+                pharmacistPrompt,
+                pharmacistField,
+                pharmacistBoxAndValidation);
 
         // Seventh row of scene elements.
         var scriptNumPrompt = new Text("Script Num");
         var scriptNumField = new ReferenceField();
+        scriptNumField.setPrefWidth(TEXT_FIELD_WIDTH);
         var scriptNumInvalid = new Text();
-        addToGrid(gridPane,
-                scriptNumPrompt,
-                null,
-                scriptNumField,
-                scriptNumInvalid);
+        scriptNumInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        FlowPane scriptNumBoxAndValidation = new FlowPane();
+        scriptNumBoxAndValidation.setHgap(GAP_SPACE);
+        scriptNumBoxAndValidation
+                .getChildren()
+                .addAll(scriptNumField, scriptNumInvalid);
+        addToGrid(gridPane, scriptNumPrompt, null, scriptNumBoxAndValidation);
 
         // Eighth row of scene elements.
         var notesPrompt = new Text("Notes");
         var notesField = new NotesField();
+        notesField.setPrefWidth(TEXT_FIELD_WIDTH);
         var notesInvalid = new Text();
-        addToGrid(gridPane, notesPrompt, null, notesField, notesInvalid);
+        notesInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        FlowPane notesBoxAndValidation = new FlowPane();
+        notesBoxAndValidation.setHgap(GAP_SPACE);
+        notesBoxAndValidation
+                .getChildren()
+                .addAll(notesField, notesInvalid);
+        addToGrid(
+                gridPane,
+                notesPrompt,
+                null,
+                notesBoxAndValidation);
 
         // Buttons.
         var ok = new Button("OK");
         var cancel = new Button("Cancel");
         FlowPane buttons = new FlowPane();
-        buttons.setHgap(GAP_SPACE);
-        buttons.getChildren().addAll(ok, cancel);
+        setUpOkCancelButtons(ok, cancel, buttons);
         addToGrid(gridPane, null, null, buttons);
 
         // Event handlers.
@@ -738,7 +918,7 @@ public class MainApp extends Application {
                             db.getBalance(selectedDrug.getId())));
                 }
             } catch (SQLException e) {
-                openSqlErrorWindow("data could not be retrieved.");
+                openSqlErrorWindow(e.toString());
             }
         });
 
@@ -746,7 +926,7 @@ public class MainApp extends Application {
 
         constrainInput(scriptNumField);
 
-        constrainInput(notesField);
+        constrainInputLowerCase(notesField);
 
         ok.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -765,14 +945,14 @@ public class MainApp extends Application {
 
                 boolean isNoErrors = Arrays
                         .stream(errors)
-                        .map(str -> str == null)
+                        .map(str -> str.isEmpty())
                         .reduce(true, (x, y) -> x && y);
 
                 if (isNoErrors) {
                     try {
                         db.addSupplyEntry(transfer);
                     } catch (SQLException e) {
-                        openSqlErrorWindow("the entry was not completed.");
+                        openSqlErrorWindow(e.toString());
                     }
                     stage.close();
                 } else {
@@ -788,7 +968,22 @@ public class MainApp extends Application {
             }
         });
 
+        addPatientButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                openWindowAddPatient();
+            }
+        });
+
+        addPrescriberButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                openWindowAddPrescriber();
+            }
+        });
+
         closeOnButtonPress(cancel, stage);
+
 
         stage.show();
     }
@@ -801,7 +996,7 @@ public class MainApp extends Application {
 
         // Root layout.
         GridPane gridPane = new GridPane();
-        setUpLayout(gridPane);
+        setUpSpacing(gridPane);
 
         // Stage.
         Stage stage = new Stage();
@@ -812,25 +1007,36 @@ public class MainApp extends Application {
         // First row of scene elements.
         var supplierPrompt = new Text("Supplier");
         var supplierField = new SupplierField();
-        supplierField.setMaxWidth(TEXT_FIELD_SEARCH_WIDTH);
+        supplierField.setPrefWidth(TEXT_FIELD_SEARCH_WIDTH);
         var supplierComboBox = new ComboBox<Supplier>();
-        supplierComboBox.setMinWidth(COMBO_BOX_MIN_WIDTH);
+        supplierComboBox.setPrefWidth(COMBO_BOX_WIDTH);
         var supplierInvalid = new Text();
+        supplierInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        HBox supplierBoxAndValidation = new HBox();
+        supplierBoxAndValidation.spacingProperty().set(GAP_SPACE);
+        supplierBoxAndValidation
+                .getChildren()
+                .addAll(supplierComboBox, supplierInvalid);
         addToGrid(
                 gridPane,
                 supplierPrompt,
                 supplierField,
-                supplierComboBox,
-                supplierInvalid);
+                supplierBoxAndValidation);
 
         // Second row of scene elements.
         var drugPrompt = new Text("Drug");
         var drugField = new DrugField();
-        drugField.setMaxWidth(TEXT_FIELD_SEARCH_WIDTH);
+        drugField.setPrefWidth(TEXT_FIELD_SEARCH_WIDTH);
         var drugComboBox = new ComboBox<Drug>();
-        drugComboBox.setMinWidth(COMBO_BOX_MIN_WIDTH);
+        drugComboBox.setPrefWidth(COMBO_BOX_WIDTH);
         var drugInvalid = new Text();
-        addToGrid(gridPane, drugPrompt, drugField, drugComboBox, drugInvalid);
+        drugInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        HBox drugBoxAndValidation = new HBox();
+        drugBoxAndValidation.spacingProperty().set(GAP_SPACE);
+        drugBoxAndValidation
+                .getChildren()
+                .addAll(drugComboBox, drugInvalid);
+        addToGrid(gridPane, drugPrompt, drugField, drugBoxAndValidation);
 
         // Third row of scene elements.
         var balancePrompt = new Text("Balance");
@@ -840,42 +1046,70 @@ public class MainApp extends Application {
         // Fourth row of scene elements.
         var qtyPrompt = new Text("Quantity");
         var qtyField = new QtyField();
-        qtyField.setMaxWidth(NUM_FIELD_WIDTH);
+        qtyField.setPrefWidth(NUM_FIELD_WIDTH);
         var qtyInvalid = new Text();
-        addToGrid(gridPane, qtyPrompt, null, qtyField, qtyInvalid);
+        qtyInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        FlowPane qtyFieldAndValidation = new FlowPane();
+        qtyFieldAndValidation.setHgap(GAP_SPACE);
+        qtyFieldAndValidation
+                .getChildren()
+                .addAll(qtyField, qtyInvalid);
+        addToGrid(gridPane, qtyPrompt, null, qtyFieldAndValidation);
 
         // Fifth row of scene elements.
         var pharmacistPrompt = new Text("Pharmacist");
         var pharmacistField = new PharmacistField();
-        pharmacistField.setMaxWidth(TEXT_FIELD_SEARCH_WIDTH);
+        pharmacistField.setPrefWidth(TEXT_FIELD_SEARCH_WIDTH);
         var pharmacistComboBox = new ComboBox<Pharmacist>();
-        pharmacistComboBox.setMinWidth(COMBO_BOX_MIN_WIDTH);
+        pharmacistComboBox.setPrefWidth(COMBO_BOX_WIDTH);
         var pharmacistInvalid = new Text();
+        pharmacistInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        HBox pharmacistBoxAndValidation = new HBox();
+        pharmacistBoxAndValidation.spacingProperty().set(GAP_SPACE);
+        pharmacistBoxAndValidation.getChildren().addAll(
+                pharmacistComboBox,
+                pharmacistInvalid);
         addToGrid(
                 gridPane,
                 pharmacistPrompt,
                 pharmacistField,
-                pharmacistComboBox,
-                pharmacistInvalid);
+                pharmacistBoxAndValidation);
 
         // Sixth row of scene elements.
         var invoicePrompt = new Text("Invoice Num");
         var invoiceField = new ReferenceField();
+        invoiceField.setPrefWidth(TEXT_FIELD_WIDTH);
         var invoiceInvalid = new Text();
-        addToGrid(gridPane, invoicePrompt, null, invoiceField, invoiceInvalid);
+        invoiceInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        FlowPane invoiceFieldAndValidation = new FlowPane();
+        invoiceFieldAndValidation.setHgap(GAP_SPACE);
+        invoiceFieldAndValidation
+                .getChildren()
+                .addAll(invoiceField, invoiceInvalid);
+        addToGrid(gridPane, invoicePrompt, null, invoiceFieldAndValidation);
 
         // Seventh row of scene elements.
         var notesPrompt = new Text("Notes");
         var notesField = new NotesField();
+        notesField.setPrefWidth(TEXT_FIELD_WIDTH);
         var notesInvalid = new Text();
-        addToGrid(gridPane, notesPrompt, null, notesField, notesInvalid);
+        notesInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        FlowPane notesFieldAndValidation = new FlowPane();
+        notesFieldAndValidation.setHgap(GAP_SPACE);
+        notesFieldAndValidation
+                .getChildren()
+                .addAll(notesField, notesInvalid);
+        addToGrid(
+                gridPane,
+                notesPrompt,
+                null,
+                notesFieldAndValidation);
 
         // Buttons.
         var ok = new Button("OK");
         var cancel = new Button("Cancel");
         FlowPane buttons = new FlowPane();
-        buttons.setHgap(GAP_SPACE);
-        buttons.getChildren().addAll(ok, cancel);
+        setUpOkCancelButtons(ok, cancel, buttons);
         addToGrid(gridPane, null, null, buttons);
 
         // Event handlers.
@@ -894,7 +1128,7 @@ public class MainApp extends Application {
                             db.getBalance(selectedDrug.getId())));
                 }
             } catch (SQLException e) {
-                openSqlErrorWindow("data could not be retrieved.");
+                openSqlErrorWindow(e.toString());
             }
         });
 
@@ -921,14 +1155,14 @@ public class MainApp extends Application {
 
                 boolean isNoErrors = Arrays
                         .stream(errors)
-                        .map(str -> str == null)
+                        .map(str -> str.isEmpty())
                         .reduce(true, (x, y) -> x && y);
 
                 if (isNoErrors) {
                     try {
                         db.addReceiveEntry(transfer);
                     } catch (SQLException e) {
-                        openSqlErrorWindow("the entry was not completed.");
+                        openSqlErrorWindow(e.toString());
                     }
                     stage.close();
                 } else {
@@ -948,20 +1182,300 @@ public class MainApp extends Application {
         stage.show();
     }
 
-    /*
-     * Adds listed child nodes to the GridPane on the next row.
-     * Any nulls in children will cause the column to be skipped
-     * over.
-     */
-    private void addToGrid(GridPane gridPane, Node... children) {
-        int rowIndex = gridPane.getRowCount();
+    private void openWindowSearchByDrug() {
 
-        for (int i = 0; i < children.length; i++) {
-            Node child = children[i];
-            if (child != null) {
-                gridPane.add(child, i, rowIndex);
+        // Second to root layout.
+        GridPane gridPane = new GridPane();
+        setUpSpacing(gridPane);
+
+        // Root layout.
+        GridPane gridPaneMain = new GridPane();
+        setUpSpacing(gridPaneMain);
+        addToGrid(gridPaneMain, gridPane);
+
+        // Stage.
+        Stage stage = new Stage();
+        stage.setTitle("Search by Drug");
+        stage.setScene(new Scene(
+                gridPaneMain, SUBWINDOW_C_WIDTH, SUBWINDOW_C_HEIGHT));
+
+        // First row of scene elements.
+        var drugPrompt = new Text("Drug");
+        var drugField = new DrugField();
+        drugField.setPrefWidth(TEXT_FIELD_SEARCH_WIDTH);
+        var drugComboBox = new ComboBox<Drug>();
+        drugComboBox.setPrefWidth(COMBO_BOX_WIDTH);
+        var drugInvalid = new Text();
+        drugInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        FlowPane drugBoxAndValidation = new FlowPane();
+        drugBoxAndValidation.setHgap(GAP_SPACE);
+        drugBoxAndValidation
+                .getChildren()
+                .addAll(drugComboBox, drugInvalid);
+        addToGrid(gridPane, drugPrompt, drugField, drugBoxAndValidation);
+
+        // Second row of scene elements.
+        var startDatePrompt = new Text("Start Date");
+        var startDateField = new DatePicker();
+        startDateField.setPrefWidth(DATE_PICKER_WIDTH);
+        var startDateInvalid = new Text();
+        startDateInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        FlowPane startDateFieldAndValidation = new FlowPane();
+        startDateFieldAndValidation.setHgap(GAP_SPACE);
+        startDateFieldAndValidation
+                .getChildren()
+                .addAll(startDateField, startDateInvalid);
+        addToGrid(gridPane, startDatePrompt, null, startDateFieldAndValidation);
+
+        // Third row of scene elements.
+        var endDatePrompt = new Text("End Date");
+        var endDateField = new DatePicker();
+        endDateField.setPrefWidth(DATE_PICKER_WIDTH);
+        var endDateInvalid = new Text();
+        endDateInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        FlowPane endDateFieldAndValidation = new FlowPane();
+        endDateFieldAndValidation.setHgap(GAP_SPACE);
+        endDateFieldAndValidation
+                .getChildren()
+                .addAll(endDateField, endDateInvalid);
+        addToGrid(gridPane, endDatePrompt, null, endDateFieldAndValidation);
+
+        // Button.
+        var ok = new Button("Search");
+        ok.setPrefWidth(OK_CANCEL_BUTTON_WIDTH);
+        var reverseEntryButton = new Button("↺");
+        addTooltip(reverseEntryButton, "Reverse entry");
+        var reverseEntryInvalid = new Text();
+        reverseEntryInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        FlowPane buttons = new FlowPane();
+        buttons.setHgap(GAP_SPACE);
+        buttons.getChildren()
+                .addAll(ok, reverseEntryButton, reverseEntryInvalid);
+        addToGrid(gridPane, null, null, buttons);
+
+        // Search Results.
+        var tableView = new TableView<TransferSearchResult>();
+        createTableLayout(tableView);
+        addToGrid(gridPaneMain, tableView);
+
+        // Event handlers.
+        updateComboBox(drugField, drugComboBox);
+
+        ok.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                var searchByDrug = new SearchByDrug(
+                        drugComboBox.getValue(),
+                        startDateField.getValue(),
+                        endDateField.getValue());
+                String[] errors = searchByDrug.validate();
+
+                boolean isNoErrors = Arrays
+                            .stream(errors)
+                            .map(str -> str.isEmpty())
+                            .reduce(true, (x, y) -> x && y);
+                
+                if (isNoErrors)
+                {
+                    try {
+                        List<TransferSearchResult> list =
+                                db.getTransfersByDrugList(searchByDrug);
+                        tableView.setItems(
+                                FXCollections.observableArrayList(list));
+
+                    } catch (SQLException e) {
+                        openSqlErrorWindow(e.toString());                        
+                    }
+                } 
+                else {
+                    // Create messages for invalid entries.
+                    drugInvalid.setText(errors[0]);
+                    startDateInvalid.setText(errors[1]);
+                    endDateInvalid.setText(errors[2]);
+                }
+                
             }
-        }
+        });
+
+        reverseEntryButton.setOnAction(event -> {
+            TransferSearchResult transferEntry =
+                    tableView.getSelectionModel().getSelectedItem();
+            if (transferEntry != null) {
+                openWindowReverseEntry(transferEntry);
+            } else {
+                reverseEntryInvalid.setText("Select entry first");
+
+            }
+        });
+
+        validationTextRemoval(reverseEntryButton, reverseEntryInvalid);
+
+        stage.show();
+    }
+
+    private void openWindowSearchByDate() {
+
+        // Second to root layout.
+        GridPane gridPane = new GridPane();
+        setUpSpacing(gridPane);
+
+        // Root layout.
+        GridPane gridPaneMain = new GridPane();
+        setUpSpacing(gridPaneMain);
+        addToGrid(gridPaneMain, gridPane);
+
+        // Stage.
+        Stage stage = new Stage();
+        stage.setTitle("Search by Day");
+        stage.setScene(new Scene(
+                gridPaneMain, SUBWINDOW_C_WIDTH, SUBWINDOW_C_HEIGHT));
+        
+        // First Row of scene elements.
+        var datePrompt = new Text("Date");
+        var dateField = new DatePicker();
+        dateField.setPrefWidth(DATE_PICKER_WIDTH);
+        var reverseEntryButton  = new Button("↺");
+        var reverseEntryTooltip = new Tooltip("Reverse entry");
+        reverseEntryTooltip.setShowDelay(Duration.millis(TOOLTIP_DELAY));
+        reverseEntryButton.setTooltip(reverseEntryTooltip);
+        var reverseEntryInvalid = new Text();
+        reverseEntryInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        addToGrid(
+                gridPane,
+                datePrompt,
+                dateField,
+                reverseEntryButton,
+                reverseEntryInvalid);
+        GridPane.setHalignment(reverseEntryButton, HPos.RIGHT);
+
+        // Search Results
+        var tableView = new TableView<TransferSearchResult>();
+        createTableLayout(tableView);
+        addToGrid(gridPaneMain, tableView);
+        
+        // Event handlers.
+        dateField.setOnAction(event -> {
+
+            updateTransferSearch(tableView, dateField);
+        });
+
+        reverseEntryButton.setOnAction(event -> {
+            TransferSearchResult transferEntry =
+                    tableView.getSelectionModel().getSelectedItem();
+            
+            if (transferEntry != null) {
+                openWindowReverseEntry(transferEntry);
+            } else {
+                reverseEntryInvalid.setText("Select entry first");
+            }
+        });
+
+        validationTextRemoval(reverseEntryButton, reverseEntryInvalid);
+
+        stage.show();
+
+        dateField.show();
+        // Set date to today and and show list on opening.
+        // dateField.setValue(LocalDate.now());
+        // updateTransferSearch(tableView, dateField);
+    }
+
+
+    /*
+     * A window to create a new entry to negate a previous entry.
+     * Reasons for this are an error in the previous entry, or
+     * cancellation of a prescription. Previous entries cannot not be
+     * modified in a drugs of dependence register.
+     */
+    private void openWindowReverseEntry(
+            TransferSearchResult transferEntry) {
+
+        // Second to root layout.
+        GridPane gridPane = new GridPane();
+        setUpSpacing(gridPane);        
+
+        // Root layout.
+        GridPane mainGridPane = new GridPane();
+        setUpSpacing(mainGridPane);
+        mainGridPane.add(gridPane, 0, 1);
+
+        // Stage.
+        Stage stage = new Stage();
+        stage.setTitle("Reverse Entry");
+        stage.setScene(new Scene(
+                mainGridPane,
+                REVERSE_ENTRY_WINDOW_WIDTH,
+                REVERSE_ENTRY_WINDOW_HEIGHT));
+        
+        // First row elements.
+        TableView<TransferSearchResult> tableViewSingleDrug = new TableView<>();
+        createTableLayout(tableViewSingleDrug);
+        tableViewSingleDrug.getColumns().remove(8, 10);
+        tableViewSingleDrug.getColumns().remove(5, 7);
+        tableViewSingleDrug.setPrefHeight(52);
+        tableViewSingleDrug.getItems().add(transferEntry);
+        mainGridPane.add(tableViewSingleDrug, 0, 0);
+
+        // Sub-layout elements.
+        Text notesPrompt = new Text("Notes");
+        NotesField notesField = new NotesField();
+        notesField.setPrefWidth(TEXT_FIELD_WIDTH);
+        Text notesInvalid = new Text();
+        notesInvalid.setFont(new Font(ERROR_FONT_SIZE));
+        FlowPane notesFieldAndValidation = new FlowPane();
+        notesFieldAndValidation.setHgap(GAP_SPACE);
+        notesFieldAndValidation
+                .getChildren()
+                .addAll(notesField, notesInvalid);
+        addToGrid(gridPane, notesPrompt, notesFieldAndValidation);
+
+        // Second row of subelement
+        var ok = new Button("OK");
+        var cancel = new Button("Cancel");
+        FlowPane buttons = new FlowPane();
+        setUpOkCancelButtons(ok, cancel, buttons);
+        addToGrid(gridPane, null, buttons);
+
+        ok.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+
+                try {
+                    int balanceBefore = db.getBalance(transferEntry.getDrugId());
+                    int balanceAfter =
+                            balanceBefore
+                            - transferEntry.getQtyIn()
+                            + transferEntry.getQtyOut();
+
+                    var reverseEntry = new ReverseEntry(
+                        transferEntry.getTransferId(),
+                        balanceAfter,
+                        notesField.getText());
+                    String[] errors = reverseEntry.validate();
+
+                    boolean isNoErrors = Arrays
+                            .stream(errors)
+                            .map(str -> str.isEmpty())
+                            .reduce(true, (x, y) -> x && y);
+
+                    if (isNoErrors) {
+                        db.reverseEntry(reverseEntry);
+                        stage.close();
+                    } else {
+                        notesInvalid.setText(errors[0]);
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    openSqlErrorWindow(e.toString());
+                }
+
+            }
+        });
+
+        closeOnButtonPress(cancel, stage);
+
+        stage.show();
+
     }
 
     /*
@@ -971,19 +1485,23 @@ public class MainApp extends Application {
     private void openSqlErrorWindow(String msg) {
         // Root layout.
         GridPane gridPane = new GridPane();
-        setUpLayout(gridPane);
+        setUpSpacing(gridPane);
 
         // Stage.
         Stage stage = new Stage();
         stage.setTitle("Database Error");
         stage.setScene(new Scene(
                 gridPane, ERROR_WINDOW_WIDTH, ERROR_WINDOW_HEIGHT));
-
-        var messageText = new Text(msg);
-        var ok = new Button("An error occurred with the database,\n"
-                + msg);
-        gridPane.add(messageText, 0, 0);
-        gridPane.add(ok, 0, 1);
+        var headerText = new Text("An error occurred with the database.");
+        var messageArea = new TextArea(msg);
+        messageArea.setWrapText(true);
+        messageArea.setEditable(false);
+        var ok = new Button("OK");
+        ok.setPrefWidth(OK_CANCEL_BUTTON_WIDTH);
+        gridPane.add(headerText, 0, 0);
+        gridPane.add(messageArea, 0, 1);
+        gridPane.add(ok, 0, 2);
+        GridPane.setHalignment(ok, HPos.CENTER);
 
         ok.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -993,6 +1511,90 @@ public class MainApp extends Application {
         });
 
         stage.show();
+    }
+
+    /*
+     * Creates table used to view drug transfers.
+     */
+    private void createTableLayout(TableView<TransferSearchResult> tableView) {
+
+        var dateColumn =
+                new TableColumn<TransferSearchResult, String>("Date");
+        dateColumn.setCellValueFactory(
+                new PropertyValueFactory<>("date"));
+        dateColumn.setPrefWidth(DATE_WIDTH);
+
+        var agentColumn =
+                new TableColumn<TransferSearchResult, String>("Agent");
+        agentColumn.setCellValueFactory(
+                new PropertyValueFactory<>("agent"));
+        agentColumn.setPrefWidth(AGENT_WIDTH);
+
+        var drugColumn =
+                new TableColumn<TransferSearchResult, String>("Drug");
+        drugColumn.setCellValueFactory(
+                new PropertyValueFactory<>("drug"));
+        drugColumn.setPrefWidth(DRUG_WIDTH);
+
+        var qtyInColumn =
+                new TableColumn<TransferSearchResult, String>("In");
+        qtyInColumn.setCellValueFactory(
+                new PropertyValueFactory<>("qtyIn"));
+        qtyInColumn.setPrefWidth(IN_OUT_WIDTH);
+        
+        var qtyOutColumn =
+                new TableColumn<TransferSearchResult, String>("Out");
+        qtyOutColumn.setCellValueFactory(
+                new PropertyValueFactory<>("qtyOut"));
+        qtyOutColumn.setPrefWidth(IN_OUT_WIDTH);
+        
+        var balanceColumn =
+                new TableColumn<TransferSearchResult, String>("Balance");
+        balanceColumn.setCellValueFactory(
+                new PropertyValueFactory<>("balance"));
+        balanceColumn.setPrefWidth(BALANCE_WIDTH);
+        
+        var prescriberColumn =
+                new TableColumn<TransferSearchResult, String>("Prescriber");
+        prescriberColumn.setCellValueFactory(
+                new PropertyValueFactory<>("prescriber"));
+        prescriberColumn.setPrefWidth(PRESCRIBER_WIDTH);
+        
+        var referenceColumn =
+                new TableColumn<TransferSearchResult, String>("Reference");
+        referenceColumn.setCellValueFactory(
+                new PropertyValueFactory<>("reference"));
+        referenceColumn.setPrefWidth(REFERENCE_WIDTH);
+
+        var pharmacistColumn =
+                new TableColumn<TransferSearchResult, String>("Pharmacist");
+        pharmacistColumn.setCellValueFactory(
+                new PropertyValueFactory<>("pharmacist"));
+        pharmacistColumn.setPrefWidth(PHARMACIST_WIDTH);
+        
+        var notesColumn =
+                new TableColumn<TransferSearchResult, String>("Notes");
+                notesColumn.setCellValueFactory(
+                new PropertyValueFactory<>("notes"));
+        notesColumn.setPrefWidth(NOTES_WIDTH);
+
+        tableView.getColumns().addAll(dateColumn, agentColumn, drugColumn);
+        tableView.getColumns().addAll(qtyInColumn, qtyOutColumn, balanceColumn);
+        tableView.getColumns().addAll(prescriberColumn, referenceColumn);
+        tableView.getColumns().addAll(pharmacistColumn, notesColumn);
+        tableView.setPrefSize(1420, 360);
+    }
+
+    /*
+     * Sizes and adds image to button.
+     */
+    private void addButtonImage(Button button, String url) {
+        Image image = new Image(url);
+        ImageView imageView = new ImageView(image);
+        button.setPrefSize(
+                GRAPHIC_BUTTON_WIDTH, GRAPHIC_BUTTON_HEIGHT);
+        button.setGraphic(imageView);
+        button.setContentDisplay(ContentDisplay.TOP);
     }
 
     /*
@@ -1008,9 +1610,52 @@ public class MainApp extends Application {
     }
 
     /*
+     * Removes input validation message once focus or mouse hover is
+     * no longer active on the control.
+     */
+    private void validationTextRemoval(Control control, Text text) {
+        control.focusedProperty()
+                .addListener((observable, oldValue, newValue) -> {
+            if (newValue == false) {
+                text.setText("");
+            }
+        });
+
+        control.hoverProperty()
+                .addListener((observable, oldValue, newValue) -> {
+            if (newValue == false) {
+                text.setText("");
+            }
+        });
+    }    
+
+    /*
+     * Gives a control a tooltip message.
+     */
+    private void addTooltip(Control control, String msg) {
+        var tooltip = new Tooltip(msg);
+        tooltip.setShowDelay(Duration.millis(TOOLTIP_DELAY));
+        control.setTooltip(tooltip);        
+    }
+
+    /**
+     * 
+     */
+    private void setUpOkCancelButtons(
+            Button ok,
+            Button cancel,
+            FlowPane buttons) {
+        ok.setPrefWidth(OK_CANCEL_BUTTON_WIDTH);
+        cancel.setPrefWidth(OK_CANCEL_BUTTON_WIDTH);
+        cancel.cancelButtonProperty().setValue(true);
+        buttons.setHgap(GAP_SPACE);
+        buttons.getChildren().addAll(ok, cancel);
+    }
+
+    /*
      * Sets up spacing properties of gridpane layout.
      */
-    private void setUpLayout(GridPane gridPane) {
+    private void setUpSpacing(GridPane gridPane) {
         gridPane.setHgap(GAP_SPACE);
         gridPane.setVgap(GAP_SPACE);
         gridPane.setPadding(new Insets(
@@ -1031,7 +1676,7 @@ public class MainApp extends Application {
                     ObservableValue<? extends String> observable,
                     String oldValue,
                     String newValue) {
-                    field.setText(newValue.toUpperCase());
+                field.setText(newValue.toUpperCase());
 
                 try {
                     List<T> list = field.getList(db);
@@ -1040,14 +1685,30 @@ public class MainApp extends Application {
 
                     comboBox.show();
                 } catch (SQLException e) {
-                    openSqlErrorWindow("data could not be retrieved.");
+                    openSqlErrorWindow(e.toString());
                 }
+            }
+        });
+
+        // Populates ComboBox with items when popup is shown.
+        comboBox.showingProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == true) {
+                try {
+                    List<T> list = field.getList(db);
+                    comboBox.setItems(
+                            FXCollections.observableArrayList(list));
+
+                    comboBox.show();
+                } catch (SQLException e) {
+                    openSqlErrorWindow(e.toString());
+                }                
             }
         });
     }
 
     /*
-     * Constrains input of a TextControl.
+     * Constrains input of a TextControl. Letters are converted to
+     * all caps.
      */
     private void constrainInput(ValidatableField field) {
         field.textProperty().addListener(new ChangeListener<String>() {
@@ -1069,6 +1730,67 @@ public class MainApp extends Application {
         });
     }
 
+    /*
+     * Constrains input of a TextControl. Lowercase letters are
+     * retained.
+     */
+    private void constrainInputLowerCase(ValidatableField field) {
+        field.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(
+                    ObservableValue<? extends String> observable,
+                    String oldValue,
+                    String newValue) {
+                boolean fieldValid = field.validate(newValue);
+
+                if (fieldValid) {
+                    field.setText(newValue);
+                } else {
+                    field.setText(oldValue);
+                }
+            }
+        });
+    }
+
+    /*
+     * Updates the TableView to filter entries with the chosen date.
+     */
+    private void updateTransferSearch(
+            TableView<TransferSearchResult> tableView,
+            DatePicker dateField) {
+        try {
+            LocalDate localDate = dateField.getValue();
+
+            if (localDate != null) {
+                List<TransferSearchResult> list =
+                        db.getTransfersByDateList(localDate);
+                tableView.setItems(
+                        FXCollections.observableArrayList(list));
+            }
+        } catch (SQLException e) {
+            openSqlErrorWindow(e.toString());
+        }        
+    }
+
+    /*
+     * Adds listed child nodes to the GridPane on the next row.
+     * Any nulls in children will cause the column to be skipped
+     * over.
+     */
+    private void addToGrid(GridPane gridPane, Node... children) {
+        int rowIndex = gridPane.getRowCount();
+
+        for (int i = 0; i < children.length; i++) {
+            Node child = children[i];
+            if (child != null) {
+                gridPane.add(child, i, rowIndex);
+            }
+        }
+    }
+
+    /**
+     * Entry point into GUI.
+     */
     public static void main(String[] args) {
         launch(args);
     }

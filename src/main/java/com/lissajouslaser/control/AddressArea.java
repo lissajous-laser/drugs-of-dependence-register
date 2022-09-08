@@ -14,6 +14,6 @@ public class AddressArea extends TextArea implements ValidatableField {
      * requirements.
      */
     public boolean validate(String newValue) {
-        return Agent.validateAddress(newValue) == null;
+        return Agent.validateAddress(newValue).isEmpty();
     }
 }

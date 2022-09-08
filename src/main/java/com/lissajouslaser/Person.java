@@ -5,7 +5,7 @@ package com.lissajouslaser;
  * prescriber, and person.
  */
 public abstract class Person {
-    static final int FIRST_NAME_MAX_LENGTH = 16;
+    static final int FIRST_NAME_MAX_LENGTH = 32;
     static final int LAST_NAME_MAX_LENGTH = 32;
     private String firstName;
     private String lastName;
@@ -41,11 +41,10 @@ public abstract class Person {
             return "Must be " + FIRST_NAME_MAX_LENGTH
                     + " characters or less";
         }
-        if (!firstName.isEmpty()
-                && !firstName.matches("[A-Z\\-' ]+")) {
+        if (!firstName.matches("[A-Z\\-' ]*")) {
             return "Can only have letters or hyphens";
         }
-        return null;
+        return "";
     }
 
     String validateLastName() {
@@ -58,18 +57,17 @@ public abstract class Person {
     /**
      * Validates partial input of lastName, returns a String with a
      * description of the first reason why lastName is invalid.
-     * Otherwise returns null.
+     * Otherwise returns an empty string.
      **/
     public static String validateLastName(String lastName) {
         if (lastName.length() > LAST_NAME_MAX_LENGTH) {
             return "Must be " + LAST_NAME_MAX_LENGTH
                     + " characters or less";
         }
-        if (!lastName.isEmpty()
-                && !lastName.matches("[A-Z\\-' ]+")) {
+        if (!lastName.matches("[A-Z\\-' ]*")) {
             return "Can only have letters or hyphens";
         }
-        return null;
+        return "";
     }
 
 }

@@ -13,6 +13,6 @@ public class FirstNameField extends TextField implements ValidatableField {
      * requirements.
      */
     public boolean validate(String newValue) {
-        return Person.validateFirstName(newValue) == null;
+        return Person.validateFirstName(newValue).isEmpty();
     }
 }

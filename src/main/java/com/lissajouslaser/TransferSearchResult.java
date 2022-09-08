@@ -6,57 +6,64 @@ import java.time.LocalDate;
  * A container class representing transfer entries with joins
  * on all its foreign keys.
  */
-public class Register {
+public class TransferSearchResult {
+    private int transferId;     // Required if entry reversed.
+    private int drugId; // Required if entry reversed.
     private LocalDate date;
-    private String agentName;
-    private String address;
+    private String agent;
     private String drug;
     private int qtyIn;
     private int qtyOut;
     private int balance;
-    private String prescriberName;
+    private String prescriber;
     private String reference;
-    private String pharmacistName;
+    private String pharmacist;
     private String notes;
 
     /**
      * Constructor.
      */
-    public Register(
+    public TransferSearchResult(
+            int transferId,
+            int drugId,
             LocalDate date,
-            String agentName,
-            String address,
+            String agent,
             String drug,
             int qtyIn,
             int qtyOut,
             int balance,
-            String prescriberName,
+            String prescriber,
             String reference,
-            String pharmacistName,
+            String pharmacist,
             String notes) {
+        this.transferId = transferId;
+        this.drugId = drugId;
         this.date = date;
-        this.agentName = agentName;
-        this.address = address;
+        this.agent = agent;
         this.drug = drug;
         this.qtyIn = qtyIn;
         this.qtyOut = qtyOut;
         this.balance = balance;
-        this.prescriberName = prescriberName;
+        this.prescriber = prescriber;
         this.reference = reference;
-        this.pharmacistName = pharmacistName;
+        this.pharmacist = pharmacist;
         this.notes = notes;
+    }
+
+    public int getTransferId() {
+        return transferId;
+    }
+
+    public int getDrugId() {
+        return drugId;
     }
 
     public LocalDate getDate() {
         return date;
     }
 
-    public String getAgentName() {
-        return agentName;
-    }
-
-    public String getAddress() {
-        return address;
+    public String getAgent() {
+        return agent;
     }
 
     public String getDrug() {
@@ -75,16 +82,16 @@ public class Register {
         return balance;
     }
 
-    public String getPrescriberName() {
-        return prescriberName;
+    public String getPrescriber() {
+        return prescriber;
     }
 
     public String getReference() {
         return reference;
     }
 
-    public String getPharmacistName() {
-        return pharmacistName;
+    public String getPharmacist() {
+        return pharmacist;
     }
 
     public String getNotes() {

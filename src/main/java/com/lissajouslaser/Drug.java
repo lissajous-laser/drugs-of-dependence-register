@@ -18,8 +18,8 @@ public class Drug {
      */
     public Drug(String name, String strength, String doseForm) {
         this.name = name.toUpperCase();
-        this.strength = strength.toUpperCase();
-        this.doseForm = doseForm.toUpperCase();
+        this.strength = strength;
+        this.doseForm = doseForm;
     }
 
     /**
@@ -28,8 +28,8 @@ public class Drug {
     public Drug(int id, String name, String strength, String doseForm) {
         this.name = name.toUpperCase();
         this.id = id;
-        this.strength = strength.toUpperCase();
-        this.doseForm = doseForm.toUpperCase();
+        this.strength = strength;
+        this.doseForm = doseForm;
     }
 
     public int getId() {
@@ -70,23 +70,23 @@ public class Drug {
     }
 
     /**
-     * Returns null if the drug name is valid, otherwise returns a
-     * string with an error message.
+     * Returns an empty string if the drug name is valid, otherwise
+     * returns a string with an error message.
      */
     public static String validateName(String name) {
         if (name.length() > NAME_MAX_LENGTH) {
             return "Name must be " + NAME_MAX_LENGTH
-                    + " characters or less";
+                    + "characters or less";
         }
-        if (!name.matches("[A-Z\\- ]+")) {
-            return "Must only have letters, hyphens and spaces";
+        if (!name.matches("[A-Z\\- ]*")) {
+            return "Must only have letters,hyphens and spaces";
         }
-        return null;
+        return "";
     }
 
     private String validateStrength() {
-        if (!strength.matches("^[0-9][0-9A-Z/]*[A-Z]$")) {
-            return "Must have numbers and units";
+        if (!strength.matches("^[0-9][0-9A-Za-z/]*[A-Za-z]$")) {
+            return "Must have numbers\nand units";
         }
         if (strength.isEmpty()) {
             return "Must fill in";
@@ -95,8 +95,9 @@ public class Drug {
     }
 
     /**
-     * Returns null if the drug strength is valid, otherwise returns a
-     * string with an error message.
+     * Returns an empty string if the drug strength is valid, otherwise
+     * returns a string with an error message. Does not restrict
+     * letters to all caps.
      */
     public static String validateStrength(String strength) {
 
@@ -104,11 +105,10 @@ public class Drug {
             return "Must be " + STRENGTH_MAX_LENGTH
                     + " characters or less";
         }
-        if (!strength.isEmpty()
-                && !strength.matches("[0-9A-Z/]+")) {
-            return "Must have numbers and have units";
+        if (!strength.matches("[0-9A-Za-z./]*")) {
+            return "Must have numbers and units";
         }
-        return null;
+        return "";
     }
 
     private String validateDoseForm() {
@@ -119,20 +119,20 @@ public class Drug {
     }
 
     /**
-     * Returns null if the drug dose form is valid, otherwise returns
-     * a string with an error message. A dose form is the type of
-     * formulation, e.g. tablet, capsule, cream, nasal spray.
-     */
+     * Returns an empty string if the drug dose form is valid,
+     * otherwise returns a string with an error message. A dose form
+     * is the type of formulation, e.g. tablet, capsule, cream, nasal
+     * spray. Does not restrict letters to all caps.
+     **/
     public static String validateDoseForm(String doseForm) {
         if (doseForm.length() > DOSE_FORM_MAX_LENGTH) {
             return "Must be " + DOSE_FORM_MAX_LENGTH
                     + " characters or less";
         }
-        if (!doseForm.isEmpty()
-                && !doseForm.matches("[A-Z\\- ]+")) {
+        if (!doseForm.matches("[A-Za-z\\- ]*")) {
             return "Must only have letters, spaces, or hyphens";
         }
-        return null;
+        return "";
     }
 
     @Override

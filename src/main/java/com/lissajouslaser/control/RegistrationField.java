@@ -13,6 +13,6 @@ public class RegistrationField extends TextField implements ValidatableField {
      * requirements.
      */
     public boolean validate(String newValue) {
-        return Pharmacist.validateRegistration(newValue) == null;
+        return Pharmacist.validateRegistration(newValue).isEmpty();
     }  
 }
