@@ -302,7 +302,7 @@ public class DatabaseConnection {
     /**
      * Adds a record of a transfer of a drug.
      **/
-    public void addSupplyEntry(Transfer transfer) throws SQLException {
+    public void addTransfer(Transfer transfer) throws SQLException {
         final int dateIdx = 1;
         final int agentIdIdx = 2;
         final int drugIdIdx = 3;

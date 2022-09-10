@@ -137,7 +137,7 @@ public class MainApp extends Application {
 
         // Stage.
         Stage stage = new Stage();
-        stage.setTitle("Drugs of Addiction Register");
+        stage.setTitle("Drugs of Dependence Register");
         stage.setScene(new Scene(
                 gridPane, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT));
 
@@ -807,7 +807,7 @@ public class MainApp extends Application {
 
                 if (isNoErrors) {
                     try {
-                        db.addSupplyEntry(transfer);
+                        db.addTransfer(transfer);
                     } catch (SQLException e) {
                         createAndOpenSqlErrorWindow(e.toString());
                     }
@@ -965,7 +965,7 @@ public class MainApp extends Application {
 
                 if (isNoErrors) {
                     try {
-                        db.addSupplyEntry(transfer);
+                        db.addTransfer(transfer);
                     } catch (SQLException e) {
                         createAndOpenSqlErrorWindow(e.toString());
                     }
@@ -1269,7 +1269,7 @@ public class MainApp extends Application {
                     if (isNoErrors) {
 
                         if (transferRead.getAgent() instanceof Patient) {
-                            db.addSupplyEntry(transferRead);
+                            db.addTransfer(transferRead);
                         }
 
                         stage.close();
