@@ -8,7 +8,8 @@ import javafx.fxml.Initializable;
 // import javafx.scene.control.Label;
 
 /**
- * Class or utilizing FXML files.
+ * Class or utilizing FXML files. Not used, came with
+ * Maven archatype.
  */
 public class FxmlController implements Initializable {
 
@@ -22,6 +23,5 @@ public class FxmlController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
     }
 }

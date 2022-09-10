@@ -1,13 +1,12 @@
 package com.lissajouslaser.control;
 
 import com.lissajouslaser.Person;
-import javafx.scene.control.TextField;
 
 /**
  * A JavaFx TextField that can be validated to meet the
  * requirements of a last name.
  */
-public class LastNameField extends TextField implements ValidatableField {
+public class LastNameField extends ValidatableField {
     /**
      * Returns whether the text in the field meets validation
      * requirements.

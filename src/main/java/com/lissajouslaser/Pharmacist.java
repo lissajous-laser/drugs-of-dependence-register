@@ -99,7 +99,6 @@ public class Pharmacist extends Person {
 
     @Override
     public String toString() {
-        return getLastName() + ", " + getFirstName()
-                + " [" + registration + "]";
+        return getLastName() + ", " + getFirstName();
     }
 }

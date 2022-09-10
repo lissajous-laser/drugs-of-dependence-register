@@ -11,6 +11,9 @@ public class SearchByDrug {
     private LocalDate startDate;
     private LocalDate endDate;
 
+    /**
+     * Constructor.
+     */
     public SearchByDrug(Drug drug, LocalDate startDate, LocalDate endDate) {
         this.drug = drug;
         this.startDate = startDate;
@@ -44,9 +47,9 @@ public class SearchByDrug {
         final int numOfFields = 3;
 
         String[] errors = new String[numOfFields];
-        errors[0] = (drug == null)? "Must select" : "";
-        errors[1] = (startDate == null)? "Must be valid" : "";
-        errors[2] = (endDate == null)? "Must be valid" : "";
+        errors[0] = (drug == null) ? "Must select" : "";
+        errors[1] = (startDate == null) ? "Must be valid" : "";
+        errors[2] = (endDate == null) ? "Must be valid" : "";
 
         return errors;
     } 

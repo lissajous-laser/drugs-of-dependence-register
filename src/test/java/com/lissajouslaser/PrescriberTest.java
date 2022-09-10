@@ -59,7 +59,7 @@ class PrescriberTest {
     @Test
     void firstNameLongerThanMaxChars_givesOneError() {
         prescriber = new Prescriber(
-            "Banjo-Kazooie-the-Game",
+            "Banjo-Kazooie-the-Game The Great III",
             "Patterson",
             "1234567"
         );

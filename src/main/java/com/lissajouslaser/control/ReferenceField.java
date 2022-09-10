@@ -1,7 +1,6 @@
 package com.lissajouslaser.control;
 
-import com.lissajouslaser.Transfer;
-import javafx.scene.control.TextField;
+import com.lissajouslaser.TransferInput;
 
 /*
  * A JavaFx TextField that can be validated to meet the
@@ -9,12 +8,12 @@ import javafx.scene.control.TextField;
  * to patient or an invoice number from a received order from a
  * supplier.
  */
-public class ReferenceField extends TextField implements ValidatableField {
+public class ReferenceField extends ValidatableField {
     /**
      * Returns whether the text in the field meets validation
      * requirements.
      */
     public boolean validate(String newValue) {
-        return Transfer.validateReference(newValue).isEmpty();
+        return TransferInput.validateReference(newValue).isEmpty();
     }
 }

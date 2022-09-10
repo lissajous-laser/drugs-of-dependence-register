@@ -59,7 +59,7 @@ public class PatientTest {
     @Test
     void firstNameLongerThanMaxChars_givesOneError() {
         patient = new Patient(
-                "Some Guy With A Big Ass Camera",
+                "Some Guy With A Big Ass Camera Rolling Around In The Woods",
                 "Adams",
                 "23 Yosemite Drive, Upwey"
         );

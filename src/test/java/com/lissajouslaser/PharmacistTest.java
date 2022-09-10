@@ -60,7 +60,7 @@ public class PharmacistTest {
     @Test
     void firstNameLongerThanMaxChars_GivesOneError() {
         pharmacist = new Pharmacist(
-            "Netherlanderinger",
+            "Netherlanderinger Bringer Of The Singer",
             "Kelly",
             "PHA0001234567"
         );

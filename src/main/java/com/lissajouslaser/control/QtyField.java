@@ -1,14 +1,13 @@
 package com.lissajouslaser.control;
 
-import com.lissajouslaser.Transfer;
-import javafx.scene.control.TextField;
+import com.lissajouslaser.TransferInput;
 
-public class QtyField extends TextField implements ValidatableField {
+public class QtyField extends ValidatableField {
     /**
      * Returns whether the text in the field meets validation
      * requirements.
      */
     public boolean validate(String newValue) {
-        return Transfer.validateQty(newValue).isEmpty();
+        return TransferInput.validateQty(newValue).isEmpty();
     }
 }

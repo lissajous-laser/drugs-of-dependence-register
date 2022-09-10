@@ -1,6 +1,6 @@
 package com.lissajouslaser.control;
 
-import javafx.beans.property.StringProperty;
+import javafx.scene.control.TextField;
 
 /**
  * An interface for JavaFX TextInputControls that can have their
@@ -8,16 +8,18 @@ import javafx.beans.property.StringProperty;
  * will be inherited from the JavaFX TextInputControl abstract
  * class.
  */
-public interface ValidatableField {
-    public boolean validate(String newValue);
+public abstract class ValidatableField extends TextField {
 
-    /**
-     * The textual content of this TextInputControl.
-     */
-    public StringProperty textProperty();
 
-    /**
-     * Sets the value of the property text.
-     */
-    public void setText(String value);
+    public abstract boolean validate(String newValue);
+
+    // /**
+    //  * The textual content of this TextInputControl.
+    //  */
+    // public StringProperty textProperty();
+
+    // /**
+    //  * Sets the value of the property text.
+    //  */
+    // public void setText(String value);
 }

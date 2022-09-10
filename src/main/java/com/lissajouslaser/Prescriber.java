@@ -97,7 +97,6 @@ public class Prescriber extends Person {
 
     @Override
     public String toString() {
-        return getLastName() + ", " + getFirstName()
-                + " [" + prescriberNum + "]";
+        return getLastName() + ", " + getFirstName();
     }
 }

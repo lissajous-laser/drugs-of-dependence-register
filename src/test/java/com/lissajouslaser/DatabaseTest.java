@@ -149,7 +149,7 @@ public class DatabaseTest {
         String doseForm = results.getString(4);
 
         assertEquals(
-                "NORSPAN10MCG/HRPATCH",
+                "NORSPAN10mcg/hrpatch",
                 name + strength + doseForm
         );
     }
@@ -180,7 +180,7 @@ public class DatabaseTest {
         String doseForm = results.getString(4);
 
         assertEquals(
-                "MS CONTIN15MGSR TABLET",
+                "MS CONTIN15mgSR tablet",
                 name + strength + doseForm
         );        
     }
@@ -209,7 +209,7 @@ public class DatabaseTest {
         }
 
         assertEquals(
-                "falseNAPOLEONBONAPARTE38 PARISIAN STREET, ARMADALE",
+                "falseNAPOLEONBONAPARTE38 Parisian Street, Armadale",
                 stringBuilder.substring(0));
     }
 
@@ -236,7 +236,7 @@ public class DatabaseTest {
         }    
 
         assertEquals(
-                "trueSIGMA HEALTHCARE2125 DANDENONG RD, CLAYTON VIC 3168",
+                "trueSIGMA HEALTHCARE2125 Dandenong Rd, Clayton VIC 3168",
                 stringBuilder.substring(0));
     }
 
@@ -270,8 +270,8 @@ public class DatabaseTest {
         }       
 
         assertEquals(
-                "falseNAPOLEONBONAPARTE38 PARISIAN STREET, ARMADALE"
-                + "trueSIGMA HEALTHCARE2125 DANDENONG RD, CLAYTON VIC 3168",
+                "falseNAPOLEONBONAPARTE38 Parisian Street, Armadale"
+                + "trueSIGMA HEALTHCARE2125 Dandenong Rd, Clayton VIC 3168",
                 stringBuilder.substring(0));        
     }
 
@@ -394,7 +394,7 @@ public class DatabaseTest {
         }
 
         assertEquals(
-                "MS CONTIN15MGSR TABLETMS CONTIN30MGSR TABLET",
+                "MS CONTIN15mgSR tabletMS CONTIN30mgSR tablet",
                 stringBuilder.substring(0)
         );
     }
@@ -432,8 +432,8 @@ public class DatabaseTest {
         }
 
         assertEquals(
-                "JOSEPHBONANNO1 SWANSTON STREET, MELBOURNE"
-                + "NAPOLEONBONAPARTE38 PARISIAN STREET, PARIS",
+                "JOSEPHBONANNO1 Swanston Street, Melbourne"
+                + "NAPOLEONBONAPARTE38 Parisian Street, Paris",
                 stringBuilder.substring(0)
         );
     }
@@ -464,7 +464,7 @@ public class DatabaseTest {
         }
 
         assertEquals(
-                "SIGMA HEALTHCARE2125 DANDENONG RD, CLAYTON VIC 3168",
+                "SIGMA HEALTHCARE2125 Dandenong Rd, Clayton VIC 3168",
                 stringBuilder.substring(0)
         );
     }
