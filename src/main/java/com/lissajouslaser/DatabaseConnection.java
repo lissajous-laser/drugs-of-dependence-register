@@ -727,7 +727,6 @@ public class DatabaseConnection {
             balance = results.getInt(1);
         }
 
-
         return balance;
     }
 }

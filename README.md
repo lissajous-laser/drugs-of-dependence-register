@@ -13,15 +13,20 @@ The records are stored in an SQLite database , and GUI is created using JavaFX. 
 ## Use
 
 Before entering a supply to a patient, entries for the patient, drug, prescriber and supplying pharmacist need to be entered first. These are accessible from the main screen.
-![Picture of Main Window](/MarkdownImages/MainWindow.png)
+![Picture of Main window](/MarkdownImages/MainWindow.png)
 
-Because entering new patients and operations are a more common operation, they are also accessible with the '+' labelled buttons in the Supply to Patient Window. When entering in a supply, the patient, drug, prescriber and pharmacist are chosen with drop-down boxes. There are search fields to filter through these options.
-![Picture of Supply to Patient Window](/MarkdownImages/SupplyToPatientWindow.jpg)
+Because entering new patients and operations are a more common operation, they are also accessible with the '+' labelled buttons in the Supply to Patient window.
+
+When entering in a supply, the patient, drug, prescriber and pharmacist are chosen with drop-down boxes. There are search fields to filter through these options. When the drug is selected, the balance before the transaction is shown.
+![Picture of Supply to Patient window](/MarkdownImages/SupplyToPatientWindow.jpg)
 
 A similar procedure is followed for entering in S8 drugs received from the supplier.
 
-Records can be searched by drug with a date range, or by day. Because entries cannot be deleted, a 'reverse entry' function allows a user to create a new entry which reverses the effect of a previous entry by swapping the quantities coming and gong out. This is requied in case of a mistake in an entry, or if a dispensing is cancelled.
-![Picture of Search by Drug Window](/MarkdownImages/SearchByDrugWindow.jpg)
+Records can be searched by drug with a date range, or by day. Because entries cannot be deleted, a 'reverse entry' function allows a user to create a new entry which reverses the effect of a previous entry by swapping the quantities coming and gong out. This is required in case of a mistake with an entry, or if a dispensing is cancelled.
+![Picture of Search by Drug window](/MarkdownImages/SearchByDrugWindow.jpg)
 
 A user user will be prompted to write a note about the reversal of the entry.
-![Picture of Reverse Entry Window](/MarkdownImages/ReverseEntryWindow.png)
+![Picture of Reverse Entry window](/MarkdownImages/ReverseEntryWindow.png)
+
+The program provides input validation for fields and boxes, and constrains key input to appropriate characters depending on the text field.
+![Picture of Receive from Supplier window](/MarkdownImages/ReceiveFromSupplierWindow.png)

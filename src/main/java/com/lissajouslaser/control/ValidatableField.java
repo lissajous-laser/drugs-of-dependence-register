@@ -10,16 +10,5 @@ import javafx.scene.control.TextField;
  */
 public abstract class ValidatableField extends TextField {
 
-
     public abstract boolean validate(String newValue);
-
-    // /**
-    //  * The textual content of this TextInputControl.
-    //  */
-    // public StringProperty textProperty();
-
-    // /**
-    //  * Sets the value of the property text.
-    //  */
-    // public void setText(String value);
 }

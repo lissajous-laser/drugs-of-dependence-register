@@ -6,7 +6,6 @@ import java.io.File;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,9 +52,9 @@ public class DatabaseMoreTest {
         db.addPrescriber(prescriber1);
 
         Prescriber prescriber2 = new Prescriber(
-            "Dennis",
-            "Ritchie",
-            "2638312"
+                "Dennis",
+                "Ritchie",
+                "2638312"
         );
         db.addPrescriber(prescriber2);
 
@@ -67,8 +66,8 @@ public class DatabaseMoreTest {
         db.addPatient(patient1);
 
         Supplier supplier1 = new Supplier(
-            "Sigma Healthcare",
-            "2125 Dandenong Rd, Clayton VIC 3168"
+                "Sigma Healthcare",
+                "2125 Dandenong Rd, Clayton VIC 3168"
         );
         db.addSupplier(supplier1);
 
@@ -145,7 +144,7 @@ public class DatabaseMoreTest {
                 db.getTransfersByDateList(LocalDate.now()).get(0);
         
         String txDetails = tr.getAgent().toString() + tr.getDrug()
-                + tr.getBalance()+ tr.getReference() + tr.getPharmacist();
+                + tr.getBalance() + tr.getReference() + tr.getPharmacist();
         
         assertEquals(
                 "SIGMA HEALTHCARE [2125 Dandenong Rd, Clayton VIC 3168]"
@@ -153,8 +152,8 @@ public class DatabaseMoreTest {
                 txDetails);
     }
 
-   @Test
-   void supplyingToPatientWorks() throws SQLException {
+    @Test
+    void supplyingToPatientWorks() throws SQLException {
         List<Pharmacist> pharmacists = db.getPharmacistsList("");
         List<Drug> drugs = db.getDrugsList("");
         List<Agent> agents = db.getAgentsList("");
@@ -186,12 +185,12 @@ public class DatabaseMoreTest {
                 db.getTransfersByDateList(LocalDate.now()).get(1);
 
         String txDetails = tr.getAgent().toString() + tr.getDrug()
-                + tr.getBalance()+ tr.getReference() + tr.getPharmacist();
+                + tr.getBalance() + tr.getReference() + tr.getPharmacist();
 
         assertEquals(
                 "BONAPARTE, NAPOLEON [38 Parisian Street, Paris]"
                 + "MS CONTIN 15mg SR tablet254444ABELSON, HAROLD",
                 txDetails);
-   }
+    }
 
 }

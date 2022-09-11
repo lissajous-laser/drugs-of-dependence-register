@@ -7,13 +7,13 @@ import java.util.List;
 import javafx.scene.control.TextField;
 
 /**
- * A textfield that searches Prescribers in the database.
+ * A textfield that searches Patients in the database.
  */
 public class PatientField
         extends TextField
         implements SearchField<Patient> {
     /**
-     * Returns list of Prescribers where the first part of their
+     * Returns list of Patients where the first part of their
      * surname matches the input text.
      */
     public List<Patient> getList(DatabaseConnection db) 
